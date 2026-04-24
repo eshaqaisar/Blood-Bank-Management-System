@@ -93,6 +93,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Models\User.cpp" />
+    <ClCompile Include="Utilities\FileManager.cpp" />
     <ClCompile Include="Views\BloodBankSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -113,6 +115,10 @@
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="Views\BloodBankSystem.ui" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Models\User.h" />
+    <ClInclude Include="Utilities\FileManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
