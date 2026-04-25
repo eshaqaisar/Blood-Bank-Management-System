@@ -63,6 +63,11 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
   </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Users\HF\source\repos\Blood-Bank-Management-System\Views</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
     <ClCompile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -92,6 +97,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BloodRequest.cpp" />
+    <ClCompile Include="CompatibilityChecker.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Views\BloodBankSystem.cpp" />
   </ItemGroup>
@@ -113,6 +120,10 @@
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="Views\BloodBankSystem.ui" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="BloodRequest.h" />
+    <ClInclude Include="CompatibilityChecker.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
