@@ -1,5 +1,4 @@
-﻿#ifndef USER_H
-#define USER_H
+﻿# pragma once
 
 #include <QString>
 
@@ -55,4 +54,3 @@ public:
     static int passwordStrength(const QString& password);
 };
 
-#endif // USER_H

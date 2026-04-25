@@ -97,8 +97,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="BloodRequest.cpp" />
-    <ClCompile Include="CompatibilityChecker.cpp" />
+    <ClCompile Include="Models\BloodRequest.cpp" />
+    <ClCompile Include="Utilities\CompatibilityChecker.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Models\User.cpp" />
     <ClCompile Include="Utilities\FileManager.cpp" />
@@ -124,8 +124,8 @@
     <QtUic Include="Views\BloodBankSystem.ui" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BloodRequest.h" />
-    <ClInclude Include="CompatibilityChecker.h" />
+    <ClInclude Include="Models\BloodRequest.h" />
+    <ClInclude Include="Utilities\CompatibilityChecker.h" />
     <ClInclude Include="Models\User.h" />
     <ClInclude Include="Utilities\FileManager.h" />
   </ItemGroup>

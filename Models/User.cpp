@@ -1,4 +1,4 @@
-#include "User.h"
+#include "Models/User.h"
 #include <QStringList>   // for split()
 #include <QChar>         // for isUpper(), isDigit()
 
