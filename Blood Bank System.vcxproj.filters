@@ -33,6 +33,10 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CompatibilityChecker.cpp">
+    <ClCompile Include="Models\User.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\FileManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -66,6 +70,10 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CompatibilityChecker.h">
+    <ClInclude Include="Models\User.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\FileManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
