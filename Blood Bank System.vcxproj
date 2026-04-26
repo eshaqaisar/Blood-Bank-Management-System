@@ -103,6 +103,7 @@
     <ClCompile Include="Models\User.cpp" />
     <ClCompile Include="Utilities\FileManager.cpp" />
     <ClCompile Include="Views\BloodBankSystem.cpp" />
+    <ClCompile Include="Views\BloodRequestForm.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitattributes" />
@@ -122,12 +123,14 @@
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="Views\BloodBankSystem.ui" />
+    <QtUic Include="Views\BloodRequestForm.ui" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BloodRequest.h" />
     <ClInclude Include="CompatibilityChecker.h" />
     <ClInclude Include="Models\User.h" />
     <ClInclude Include="Utilities\FileManager.h" />
+    <QtMoc Include="Views\BloodRequestForm.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

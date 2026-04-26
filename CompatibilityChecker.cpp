@@ -1,11 +1,8 @@
 #include "CompatibilityChecker.h"
-#include <iostream>
-#include "BloodRequest.h"
-
-using namespace std;
+#include <QString>
 
 
-bool CompatibilityChecker::canDonateTo(string donorBlood, string patientBlood) {
+bool CompatibilityChecker::canDonateTo(QString donorBlood, QString patientBlood) {
 
 	if (donorBlood == "O-") {
 		return true;
