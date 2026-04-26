@@ -1,12 +1,12 @@
-#pragma once
+
 #ifndef COMPATIBILITYCHECKER_H
 #define COMPATIBILITYCHECKER_H
-#include <string>
-using namespace std;
+#include <QString>
+
 
 class CompatibilityChecker {
 public:
-    static bool canDonateTo(string donorBlood, string patientBlood);
+    static bool canDonateTo(QString donorBlood, QString patientBlood);
 };
 
 #endif

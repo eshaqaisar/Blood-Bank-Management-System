@@ -1,11 +1,13 @@
 #include "BloodRequest.h"
-#include <iostream>
-#include <fstream>
-using namespace std;
+#include <QFile> 
+#include <QTextStream>
+
+
+
 
 // Constructor
-BloodRequest::BloodRequest(string requestID, string patientName,
-    string hospitalName, string BloodGroup, int units) {
+BloodRequest::BloodRequest(QString requestID, QString patientName,
+    QString hospitalName, QString BloodGroup, int units) {
 
     this->requestID = requestID;
     this->patientName = patientName;
@@ -16,22 +18,22 @@ BloodRequest::BloodRequest(string requestID, string patientName,
 }
 
 // Getters
-string BloodRequest::getRequestId() {
+QString BloodRequest::getRequestId() {
     return requestID;
 }
-string BloodRequest::getPatientName() {
+QString BloodRequest::getPatientName() {
     return patientName;
 }
-string BloodRequest::getHospitalName() {
+QString BloodRequest::getHospitalName() {
     return hospitalName;
 }
-string BloodRequest::getBloodGroup() {
+QString BloodRequest::getBloodGroup() {
     return BloodGroup;
 }
 int BloodRequest::getUnits() {
     return units;
 }
-string BloodRequest::getStatus() {
+QString BloodRequest::getStatus() {
     return status;
 }
 
@@ -43,10 +45,6 @@ void BloodRequest::approveRequest() {
 
     if (status == "Pending") {
         status = "Approved";
-        cout << " Request " << requestID << " has been APPROVED" << endl;
-    }
-    else {
-        std::cout << " Cannot approve - Request is already " << status << endl;
     }
 }
 
@@ -56,40 +54,17 @@ void BloodRequest::rejectRequest() {
 
     if (status == "Pending") {
         status = "Rejected";
-        cout << " Request " << requestID << " has been REJECTED" << endl;
-    }
-    else {
-        cout << " Cannot reject - Request is already " << status << endl;
     }
 }
-
-// Display
-void BloodRequest::displayRequestInfo() {
-
-    cout << "\n********* BLOOD REQUEST **********\n" << endl;
-
-    cout << "Request ID:    " << requestID << endl;
-    cout << "Patient Name:  " << patientName << endl;
-    cout << "Hospital:      " << hospitalName << endl;
-    cout << "Blood Group:   " << BloodGroup << endl;
-    cout << "Units Needed:  " << units << endl;
-    cout << "Status:        " << status << endl;
-
-    cout << "====================================" << endl;
-
-    }
-
 // file handling
 
 void BloodRequest::saveToFile() {
-    ofstream file("Database/requests.txt", ios::app);
-    if (file.is_open()) {
-        file << requestID << ","
-            << patientName << ","
-            << hospitalName << ","
-            << BloodGroup << ","
-            << units << ","
-            << status << "\n";
+    QFile file("Database/requests.txt");
+    if (file.open(QIODevice::Append | QIODevice::Text)) {
+        QTextStream out(&file);
+        out << requestID << "," << patientName << ","
+            << hospitalName << "," << BloodGroup << ","
+            << units << "," << status << "\n";
         file.close();
     }
 }
