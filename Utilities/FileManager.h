@@ -1,6 +1,4 @@
-#ifndef FILEMANAGER_H
-#define FILEMANAGER_H
-
+# pragma once 
 #include <QString>
 #include <QList>
 #include <QStringList>
@@ -85,4 +83,3 @@ private:
     static bool        appendLine(const QString& filePath, const QString& line);
 };
 
-#endif // FILEMANAGER_H
