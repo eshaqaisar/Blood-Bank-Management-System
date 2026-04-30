@@ -2,6 +2,8 @@
 #ifndef COMPATIBILITY_H
 #define COMPATIBILITY_H
 #include <QString>
+#include <QList>
+
 
 
 class CompatibilityChecker {

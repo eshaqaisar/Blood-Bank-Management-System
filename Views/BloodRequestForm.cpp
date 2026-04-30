@@ -1,5 +1,5 @@
 #include "BloodRequestForm.h"
-#include "BloodRequest.h"
+#include "../Models/BloodRequest.h"
 
 BloodRequestForm::BloodRequestForm(QWidget* parent) : QWidget(parent) {
     lblName = new QLabel("Patient Name:");

@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.5.11716.220 stable
+VisualStudioVersion = 18.5.11716.220
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Blood Bank System", "Blood Bank System.vcxproj", "{989B6993-981C-4B66-BDFF-1977659CD7F0}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BloodBankSystem", "BloodBankSystem.vcxproj", "{76E08F1D-56C5-3003-93E1-DC90E8FDE221}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BloodBankSystem", "BloodBankSystem.vcxproj", "{EC861CC2-1245-3340-BF73-A9B451C7C056}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{989B6993-981C-4B66-BDFF-1977659CD7F0}.Debug|x64.Build.0 = Debug|x64
 		{989B6993-981C-4B66-BDFF-1977659CD7F0}.Release|x64.ActiveCfg = Release|x64
 		{989B6993-981C-4B66-BDFF-1977659CD7F0}.Release|x64.Build.0 = Release|x64
-		{76E08F1D-56C5-3003-93E1-DC90E8FDE221}.Debug|x64.ActiveCfg = Debug|x64
-		{76E08F1D-56C5-3003-93E1-DC90E8FDE221}.Debug|x64.Build.0 = Debug|x64
-		{76E08F1D-56C5-3003-93E1-DC90E8FDE221}.Release|x64.ActiveCfg = Release|x64
-		{76E08F1D-56C5-3003-93E1-DC90E8FDE221}.Release|x64.Build.0 = Release|x64
+		{EC861CC2-1245-3340-BF73-A9B451C7C056}.Debug|x64.ActiveCfg = Debug|x64
+		{EC861CC2-1245-3340-BF73-A9B451C7C056}.Debug|x64.Build.0 = Debug|x64
+		{EC861CC2-1245-3340-BF73-A9B451C7C056}.Release|x64.ActiveCfg = Release|x64
+		{EC861CC2-1245-3340-BF73-A9B451C7C056}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
