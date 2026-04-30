@@ -1,44 +1,107 @@
-#include "DonorDashBoard.h"
-#include "ui_DonorDashBoard.h"
-#include <QFile>
-#include <QTextStream>
-#include <QMessageBox>
+#include "DonorDashboard.h"
+#include "LandingPage.h"
+#include "../Utilities/FileManager.h"
+#include "../Models/Donor.h"
+#include <QTableWidgetItem>   
+#include <QHeaderView>        
+#include <QAbstractItemView>  
+#include <QColor>             
+#include <QFont>              
 
-DonorDashboard::DonorDashboard(QWidget *parent)
-    : QMainWindow(parent), ui(new Ui::DonorDashBoardClass) // UI class match
+
+
+DonorDashboard::DonorDashboard(const QString& donorUsername, QWidget* parent)
+    : QWidget(parent), donorUsername(donorUsername)
 {
-    ui->setupUi(this);
+    setupUI();
+    loadDonorProfile(); // Populate labels from file
+    applyStyle();
+}
+DonorDashboard::~DonorDashboard() {}
+
+void DonorDashboard::setupUI() {
+    setWindowTitle("Donor Dashboard");
+    setMinimumSize(600, 500);
+
+    lblTitle = new QLabel("🩸 Donor Dashboard", this);
+    lblTitle->setAlignment(Qt::AlignCenter);
+    lblTitle->setObjectName("lblTitle");
+
+    lblName = new QLabel("Name: —", this);
+    lblBloodGroup = new QLabel("Blood Group: —", this);
+    lblEligibility = new QLabel("Eligible to Donate: —", this);
+    lblLastDonation = new QLabel("Last Donation: —", this);
+
+    // Donation history table
+    tblHistory = new QTableWidget(0, 2, this); // 0 rows, 2 columns
+    tblHistory->setHorizontalHeaderLabels({ "Date", "Units Donated" });
+    tblHistory->horizontalHeader()->setStretchLastSection(true);
+    tblHistory->setEditTriggers(QAbstractItemView::NoEditTriggers); // Read-only
+
+    btnLogout = new QPushButton("🚪 Logout", this);
+    connect(btnLogout, &QPushButton::clicked, this, &DonorDashboard::onLogout);
+
+    QVBoxLayout* layout = new QVBoxLayout(this);
+    layout->setContentsMargins(40, 30, 40, 30);
+    layout->setSpacing(12);
+    layout->addWidget(lblTitle);
+    layout->addWidget(lblName);
+    layout->addWidget(lblBloodGroup);
+    layout->addWidget(lblEligibility);
+    layout->addWidget(lblLastDonation);
+    layout->addWidget(new QLabel("📋 Donation History:", this));
+    layout->addWidget(tblHistory);
+    layout->addWidget(btnLogout);
+    setLayout(layout);
 }
 
-DonorDashboard::~DonorDashboard() {
-    delete ui;
-}
+// ---- Load the donor's data from donors.txt and display it ----
+void DonorDashboard::loadDonorProfile() {
+    // Find the donor whose name matches the username (simplified match)
+    QList<Donor> donors = FileManager::loadDonors();
+    for (const Donor& d : donors) {
+        if (d.getName().toLower().contains(donorUsername.toLower()) ||
+            d.getContact() == donorUsername) {
+            // Found — populate labels using ENCAPSULATED getters
+            lblName->setText("Name: " + d.getName());
+            lblBloodGroup->setText("Blood Group: " + d.getBloodGroup());
+            lblEligibility->setText(
+                "Eligible to Donate: " + QString(d.isEligible() ? "✅ Yes" : "❌ No (cooldown active)"));
+            lblLastDonation->setText(
+                "Last Donation: " + (d.getLastDonationDate().isValid()
+                    ? d.getLastDonationDate().toString("dd-MM-yyyy")
+                    : "No previous donation"));
 
-
-void DonorDashboard::on_pushButton_clicked() {
-    
-    QString name = ui->lineEdit->text();      // Name field
-    QString address = ui->lineEdit_2->text();   // Address field
-    QString email = ui->lineEdit_3->text();     // Email field
-    QString phone = ui->lineEdit_4->text();     // Phone field
-
-    
-    QFile file("donor.txt");
-    
-    if (file.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text)) {
-        QTextStream out(&file);
-        out << name << " , " << address << " ," << email << " , " << phone << "\n";
-        file.close();
-
-        
-        QMessageBox::information(this, "Data Saved", " successfully! donor  data save in file.");
-        
-        
-        ui->lineEdit->clear();
-        ui->lineEdit_2->clear();
-        ui->lineEdit_3->clear();
-        ui->lineEdit_4->clear();
-    } else {
-        QMessageBox::critical(this, "Error", "File not opening!");
+            // Populate history table
+            QStringList history = d.getDonationHistory();
+            tblHistory->setRowCount(history.size());
+            for (int i = 0; i < history.size(); i++) {
+                tblHistory->setItem(i, 0, new QTableWidgetItem(history[i]));
+                tblHistory->setItem(i, 1, new QTableWidgetItem("1 unit"));
+            }
+            return;
+        }
     }
+    lblName->setText("Profile not found. Please contact Admin.");
+}
+
+void DonorDashboard::onLogout() {
+    FileManager::logActivity("Donor logged out: " + donorUsername);
+    LandingPage* landing = new LandingPage();
+    landing->show();
+    this->close();
+}
+
+void DonorDashboard::applyStyle() {
+    setStyleSheet(R"(
+        QWidget { background: #fff; font-family: Arial; font-size: 13px; }
+        #lblTitle { font-size: 20px; font-weight: bold; color: #c0392b; }
+        QLabel { font-size: 13px; color: #2c3e50; }
+        QTableWidget { border: 1px solid #ddd; }
+        QPushButton {
+            background: #2c3e50; color: white;
+            border-radius: 6px; padding: 9px; font-size: 13px;
+        }
+        QPushButton:hover { background: #34495e; }
+    )");
 }
