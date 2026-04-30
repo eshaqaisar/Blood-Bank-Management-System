@@ -1,26 +1,37 @@
 #ifndef DONORDASHBOARD_H
 #define DONORDASHBOARD_H
 
-#include <QMainWindow>
+#include <QWidget>
+#include <QLabel>
+#include <QPushButton>
+#include <QTableWidget>
+#include <QVBoxLayout>
 
-QT_BEGIN_NAMESPACE
-namespace Ui { class DonorDashBoardClass; } // Designer name match
-QT_END_NAMESPACE
 
-class DonorDashboard : public QMainWindow
-{
+class DonorDashboard : public QWidget {
     Q_OBJECT
 
 public:
-    explicit DonorDashboard(QWidget* parent = nullptr);
+    explicit DonorDashboard(const QString& donorUsername, QWidget* parent = nullptr);
     ~DonorDashboard();
 
 private slots:
-    
-    void on_pushButton_clicked();
+    void onLogout();
 
 private:
-    Ui::DonorDashBoardClass* ui;
+    QString donorUsername;
+
+    QLabel* lblTitle;
+    QLabel* lblName;
+    QLabel* lblBloodGroup;
+    QLabel* lblEligibility;
+    QLabel* lblLastDonation;
+    QTableWidget* tblHistory;      // Shows donation history
+    QPushButton* btnLogout;
+
+    void setupUI();
+    void loadDonorProfile(); // Reads donor data from donors.txt
+    void applyStyle();
 };
 
-#endif 
+#endif // DONORDASHBOARD_H
