@@ -1,31 +1,43 @@
-#ifndef REGISTRATIONFROM_H
-#define REGISTRATIONFROM_H
+#ifndef DONORREGISTRATIONFORM_H
+#define DONORREGISTRATIONFORM_H
 
-#include <QMainWindow>
+#include <QWidget>
+#include <QLineEdit>
+#include <QComboBox>
+#include <QPushButton>
+#include <QLabel>
+#include <QFormLayout>
+#include <QVBoxLayout>
 
-class DonorDashboard; 
 
-QT_BEGIN_NAMESPACE
-namespace Ui { class RegistrationFromClass; } 
-QT_END_NAMESPACE
 
-class RegistrationFrom : public QMainWindow
-{
+
+class DonorRegistrationForm : public QWidget {
     Q_OBJECT
 
 public:
-    explicit RegistrationFrom(QWidget* parent = nullptr);
-    ~RegistrationFrom();
+    explicit DonorRegistrationForm(QWidget* parent = nullptr);
+    ~DonorRegistrationForm();
 
 private slots:
-    void on_AddDonor_clicked(); 
+    void onAddDonorClicked();
+    void onClearClicked();
 
-
-
-    void on_veiwList_clicked();
-    void on_darkModeBtn_clicked();
 private:
-    Ui::RegistrationFromClass* ui; // Naming match
+    QLineEdit* txtName;
+    QLineEdit* txtAge;
+    QLineEdit* txtContact;
+    QLineEdit* txtCity;
+    QLineEdit* txtWeight;
+    QLineEdit* txtUnits;        // Units being donated today
+    QComboBox* cmbBloodGroup;
+    QPushButton* btnAdd;
+    QPushButton* btnClear;
+    QLabel* lblStatus;
+
+    void setupUI();
+    void applyStyle();
+    void clearFields();
 };
 
-#endif
+#endif // DONORREGISTRATIONFORM_H
