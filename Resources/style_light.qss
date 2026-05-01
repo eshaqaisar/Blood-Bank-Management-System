@@ -1,0 +1,215 @@
+/* ============================================================
+   style_light.qss  —  Light Theme
+   Applied app-wide via: qApp->setStyleSheet(...)
+   ============================================================
+
+   COLOR PALETTE (Light Mode):
+     Background   : #f5f5f5  (off-white)
+     Primary      : #c0392b  (blood red)
+     Secondary    : #2c3e50  (dark navy)
+     Accent green : #27ae60
+     Text         : #2c3e50
+     Border       : #bdc3c7
+   ============================================================ */
+
+/* ---- Base Widget ---- */
+QWidget {
+    background-color: #f5f5f5;
+    color: #2c3e50;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 13px;
+}
+
+/* ---- Main Window ---- */
+QMainWindow {
+    background-color: #f5f5f5;
+}
+
+/* ---- Labels ---- */
+QLabel {
+    color: #2c3e50;
+    background: transparent;
+}
+
+/* ---- Line Edit (text input) ---- */
+QLineEdit {
+    background-color: #ffffff;
+    color: #2c3e50;
+    border: 1px solid #bdc3c7;
+    border-radius: 6px;
+    padding: 7px 10px;
+    font-size: 13px;
+    selection-background-color: #fadbd8;
+}
+QLineEdit:focus {
+    border: 2px solid #c0392b;
+    background-color: #fff9f9;
+}
+QLineEdit:disabled {
+    background-color: #ecf0f1;
+    color: #95a5a6;
+}
+
+/* ---- Push Button ---- */
+QPushButton {
+    background-color: #c0392b;
+    color: #ffffff;
+    border: none;
+    border-radius: 7px;
+    padding: 9px 18px;
+    font-size: 13px;
+    font-weight: bold;
+    min-width: 80px;
+}
+QPushButton:hover {
+    background-color: #e74c3c;
+}
+QPushButton:pressed {
+    background-color: #a93226;
+}
+QPushButton:disabled {
+    background-color: #bdc3c7;
+    color: #7f8c8d;
+}
+
+/* ---- ComboBox (dropdown) ---- */
+QComboBox {
+    background-color: #ffffff;
+    color: #2c3e50;
+    border: 1px solid #bdc3c7;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 13px;
+    min-width: 100px;
+}
+QComboBox:focus {
+    border: 2px solid #c0392b;
+}
+QComboBox::drop-down {
+    border: none;
+    width: 22px;
+}
+QComboBox QAbstractItemView {
+    background-color: #ffffff;
+    color: #2c3e50;
+    selection-background-color: #fadbd8;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+}
+
+/* ---- SpinBox ---- */
+QSpinBox {
+    background-color: #ffffff;
+    border: 1px solid #bdc3c7;
+    border-radius: 6px;
+    padding: 6px;
+    font-size: 13px;
+}
+QSpinBox:focus { border: 2px solid #c0392b; }
+
+/* ---- Table Widget ---- */
+QTableWidget {
+    background-color: #ffffff;
+    gridline-color: #ecf0f1;
+    border: 1px solid #dde1e4;
+    border-radius: 6px;
+    alternate-background-color: #fdfcfc;
+    selection-background-color: #fadbd8;
+    selection-color: #2c3e50;
+}
+QTableWidget::item {
+    padding: 5px 8px;
+}
+QHeaderView::section {
+    background-color: #c0392b;
+    color: #ffffff;
+    font-weight: bold;
+    padding: 8px;
+    border: none;
+    border-right: 1px solid #a93226;
+}
+QHeaderView::section:last {
+    border-right: none;
+}
+
+/* ---- Progress Bar ---- */
+QProgressBar {
+    background-color: #ecf0f1;
+    border: 1px solid #bdc3c7;
+    border-radius: 5px;
+    height: 14px;
+    text-align: center;
+    font-size: 10px;
+    color: #2c3e50;
+}
+QProgressBar::chunk {
+    background-color: #27ae60;
+    border-radius: 5px;
+}
+
+/* ---- Scroll Bar (vertical) ---- */
+QScrollBar:vertical {
+    background: #ecf0f1;
+    width: 10px;
+    border-radius: 5px;
+}
+QScrollBar::handle:vertical {
+    background: #bdc3c7;
+    border-radius: 5px;
+    min-height: 30px;
+}
+QScrollBar::handle:vertical:hover {
+    background: #c0392b;
+}
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical { height: 0px; }
+
+/* ---- Message Box ---- */
+QMessageBox {
+    background-color: #ffffff;
+}
+QMessageBox QPushButton {
+    min-width: 80px;
+    padding: 7px 16px;
+}
+
+/* ---- Sidebar widget (AdminDashboard) ---- */
+#sidebar {
+    background-color: #2c3e50;
+    border-right: 2px solid #1a252f;
+}
+#sidebar QLabel {
+    color: #ecf0f1;
+    font-weight: bold;
+    font-size: 12px;
+    padding: 8px 4px 4px 4px;
+}
+#sidebar QPushButton {
+    background-color: #34495e;
+    color: #ecf0f1;
+    border-radius: 5px;
+    text-align: left;
+    padding: 10px 12px;
+    font-size: 13px;
+    font-weight: normal;
+    border: none;
+}
+#sidebar QPushButton:hover {
+    background-color: #c0392b;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+/* ---- Top bar labels ---- */
+#lblWelcome {
+    font-size: 14px;
+    font-weight: bold;
+    color: #2c3e50;
+    padding: 6px;
+}
+#lblAlert {
+    color: #c0392b;
+    font-weight: bold;
+    font-size: 12px;
+    padding: 6px;
+}

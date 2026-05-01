@@ -4,7 +4,9 @@
 #include "../Models/BloodBag.h"
 #include <QMessageBox>
 
-
+// ============================================================
+// DonorRegistrationForm.cpp  |  Domain 1: Muhammad Ali
+// ============================================================
 
 DonorRegistrationForm::DonorRegistrationForm(QWidget* parent) : QWidget(parent) {
     setupUI();
@@ -16,32 +18,32 @@ void DonorRegistrationForm::setupUI() {
     setWindowTitle("Add New Donor");
     setMinimumWidth(420);
 
-    txtName = new QLineEdit(this); txtName->setPlaceholderText("Full Name");
-    txtAge = new QLineEdit(this); txtAge->setPlaceholderText("Age (must be 18+)");
-    txtContact = new QLineEdit(this); txtContact->setPlaceholderText("Phone Number");
-    txtCity = new QLineEdit(this); txtCity->setPlaceholderText("City");
-    txtWeight = new QLineEdit(this); txtWeight->setPlaceholderText("Weight in kg (must be 50+)");
-    txtUnits = new QLineEdit(this); txtUnits->setPlaceholderText("Units donating today (e.g. 1)");
+    txtName      = new QLineEdit(this); txtName->setPlaceholderText("Full Name");
+    txtAge       = new QLineEdit(this); txtAge->setPlaceholderText("Age (must be 18+)");
+    txtContact   = new QLineEdit(this); txtContact->setPlaceholderText("Phone Number");
+    txtCity      = new QLineEdit(this); txtCity->setPlaceholderText("City");
+    txtWeight    = new QLineEdit(this); txtWeight->setPlaceholderText("Weight in kg (must be 50+)");
+    txtUnits     = new QLineEdit(this); txtUnits->setPlaceholderText("Units donating today (e.g. 1)");
 
     cmbBloodGroup = new QComboBox(this);
-    cmbBloodGroup->addItems({ "A+","A-","B+","B-","AB+","AB-","O+","O-" });
+    cmbBloodGroup->addItems({"A+","A-","B+","B-","AB+","AB-","O+","O-"});
 
     lblStatus = new QLabel("", this);
     lblStatus->setAlignment(Qt::AlignCenter);
     lblStatus->setObjectName("lblStatus");
 
-    btnAdd = new QPushButton("✅  Add Donor", this);
+    btnAdd   = new QPushButton("✅  Add Donor", this);
     btnClear = new QPushButton("🗑️  Clear Fields", this);
 
-    connect(btnAdd, &QPushButton::clicked, this, &DonorRegistrationForm::onAddDonorClicked);
+    connect(btnAdd,   &QPushButton::clicked, this, &DonorRegistrationForm::onAddDonorClicked);
     connect(btnClear, &QPushButton::clicked, this, &DonorRegistrationForm::onClearClicked);
 
     QFormLayout* form = new QFormLayout();
     form->setSpacing(10);
-    form->addRow("Name:", txtName);
-    form->addRow("Age:", txtAge);
-    form->addRow("Contact:", txtContact);
-    form->addRow("City:", txtCity);
+    form->addRow("Name:",        txtName);
+    form->addRow("Age:",         txtAge);
+    form->addRow("Contact:",     txtContact);
+    form->addRow("City:",        txtCity);
     form->addRow("Blood Group:", cmbBloodGroup);
     form->addRow("Weight (kg):", txtWeight);
     form->addRow("Units Today:", txtUnits);
@@ -64,10 +66,10 @@ void DonorRegistrationForm::onAddDonorClicked() {
     lblStatus->setText("");
 
     // ---- Input validation ----
-    QString name = txtName->text().trimmed();
-    int     age = txtAge->text().toInt();
-    double  weight = txtWeight->text().toDouble();
-    int     units = txtUnits->text().toInt();
+    QString name    = txtName->text().trimmed();
+    int     age     = txtAge->text().toInt();
+    double  weight  = txtWeight->text().toDouble();
+    int     units   = txtUnits->text().toInt();
 
     if (name.isEmpty() || txtContact->text().isEmpty()) {
         lblStatus->setText("❌ Name and Contact are required.");
@@ -108,7 +110,7 @@ void DonorRegistrationForm::onAddDonorClicked() {
     inventory.save(FileManager::INVENTORY_FILE);
 
     lblStatus->setText("✅ Donor " + name + " added and " +
-        QString::number(units) + " unit(s) added to inventory.");
+                       QString::number(units) + " unit(s) added to inventory.");
     lblStatus->setStyleSheet("color: green;");
     clearFields();
 }

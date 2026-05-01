@@ -1,0 +1,19 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+
+    <!--
+        resources.qrc — Qt Resource Collection File
+        =============================================
+        Any file listed here gets EMBEDDED into the .exe.
+        Access them in code using the ":/prefix/filename" syntax.
+
+        Example:
+            QFile file(":/styles/style_light.qss");
+    -->
+
+    <qresource prefix="/styles">
+        <file>style_light.qss</file>
+        <file>style_dark.qss</file>
+    </qresource>
+
+</RCC>

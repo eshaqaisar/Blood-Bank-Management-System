@@ -1,10 +1,10 @@
-﻿# pragma once
-#include "Utilities/FileManager.h"
+﻿#include "FileManager.h"
 #include <QFile>
 #include <QTextStream>
 #include <QDateTime>
 #include <QDebug>
 #include <QDir>
+#include <QFileInfo>  // REQUIRED: QFileInfo used to get directory from file path
 
 // ============================================================
 // FileManager.cpp  |  Domain 4: Esha Qaisar
@@ -21,8 +21,7 @@ const QString FileManager::REQUESTS_FILE = "Database/requests.txt";
 const QString FileManager::LOGS_FILE = "Database/logs.txt";
 
 // ============================================================
-// PRIVATE HELPER METHODS - tells you how files are read/written, but these are hidden from other classes so they
-// don't need to worry about the details. Other classes just call the public methods below and let 
+// PRIVATE HELPER METHODS
 // ============================================================
 
 // Read all non-empty lines from a file into a QStringList

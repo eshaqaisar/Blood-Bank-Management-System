@@ -10,8 +10,18 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 
-
-
+// ============================================================
+// DonorListForm.h  |  Domain 1: Muhammad Ali
+// ============================================================
+//
+// Admin screen showing ALL donors in a searchable, sortable table.
+// Features:
+//   - Search by Name or Blood Group
+//   - Sort by clicking column headers (Qt built-in)
+//   - Delete selected donor
+//   - View full profile (shows Compatibility info)
+//   - Add New Donor button (opens DonorRegistrationForm)
+// ============================================================
 
 class DonorListForm : public QWidget {
     Q_OBJECT

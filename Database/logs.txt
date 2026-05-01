@@ -1,0 +1,3 @@
+[2026-04-25 14:47:09] User logged in: admin
+[2026-04-25 14:48:15] User logged in: admin
+[2026-04-25 14:48:34] Admin logged out: admin

@@ -5,12 +5,14 @@
 #include "../Models/Donor.h"
 #include <QMessageBox>
 #include <QHeaderView>
-#include <QTableWidgetItem>   
-#include <QAbstractItemView>  
-#include <QColor>             
-#include <QFont>              
+#include <QTableWidgetItem>   // REQUIRED: QTableWidgetItem for each cell
+#include <QAbstractItemView>  // REQUIRED: SelectRows, NoEditTriggers
+#include <QColor>             // REQUIRED: setForeground() color
+#include <QFont>              // REQUIRED: QFont for bold blood group label
 
-
+// ============================================================
+// DonorListForm.cpp  |  Domain 1: Muhammad Ali
+// ============================================================
 
 DonorListForm::DonorListForm(QWidget* parent) : QWidget(parent) {
     setupUI();

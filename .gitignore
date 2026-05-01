@@ -1,21 +1,30 @@
-﻿# Visual Studio / Qt / build outputs – ignore everything that should not be committed
+﻿# Visual Studio / Qt / build outputs
 
 # Solution and project files (user‑specific)
 *.sln
+*.slnx
 *.vcxproj
 *.vcxproj.filters
 *.vcxproj.user
 *.qtvscr
 CppProperties.json
 
-# Build folders (debug, release, x64, etc.)
+# Build folders (any case, any location)
+build/
+[Bb]uild/
 [Dd]ebug/
 [Rr]elease/
 x64/
 x86/
-[Bb]uild/
 [Oo]bj/
 [Bb]in/
+
+# Qt Creator / clangd cache (the huge index files you saw)
+.qtc_clangd/
+compile_commands.json
+Makefile*
+Makefile.*
+*.idx
 
 # User settings and temporary files
 *.user
@@ -35,6 +44,3 @@ x86/
 *.ilk
 *.log
 *.cache
-/Blood-Bank-Management-System.slnx
-/BloodBankSystem.qtvscr
-/CppProperties.json
