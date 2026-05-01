@@ -49,9 +49,7 @@ BloodRequest BloodRequest::fromFileString(const QString& line) {
         req.requestDate = QDate::fromString(p[6].trimmed(), "yyyy-MM-dd");
     return req;
 }
-QDate BloodRequest::getRequestDate() const {
-    return requestDate; // make sure this variable exists
-}
+
 
 // file handling
 
