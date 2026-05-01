@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
         return 1;
     }
     QDir::setCurrent(appDataDir);
-
+    
     
     LandingPage landingPage;
     landingPage.setWindowTitle("Blood Bank Management System");
