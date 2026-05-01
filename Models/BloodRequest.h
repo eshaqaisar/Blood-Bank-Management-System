@@ -46,9 +46,6 @@ public:
     void reject() { if (status == "Pending") status = "Rejected"; }
 
 
-    // functions added for backword compat
-    QDate getRequestDate() const;
-
     void approveRequest() { approve(); }
     void rejectRequest() { reject(); }
 
