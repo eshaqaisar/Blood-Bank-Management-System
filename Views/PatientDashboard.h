@@ -9,13 +9,14 @@ class PatientDashboard : public QWidget {
     Q_OBJECT
 
 private:
+    QString currentUsername;   // ✅ ADD THIS
     QLabel* lblTitle;
     QTableWidget* tblRequests;
     QPushButton* btnNewRequest;
     QPushButton* btnRefresh;
 
 public:
-    PatientDashboard(QWidget* parent = nullptr);
+    PatientDashboard(const QString& username, QWidget* parent = nullptr); // ✅ FIXED
 
 public slots:
     void onNewRequestClicked();

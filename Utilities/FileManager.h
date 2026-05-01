@@ -1,12 +1,14 @@
-# pragma once 
+#ifndef FILEMANAGER_H
+#define FILEMANAGER_H
+
 #include <QString>
 #include <QList>
 #include <QStringList>
-#include "Models/Donor.h"
-#include "Models/Patient.h"
-#include "Models/User.h"
-#include "Models/BloodBag.h"
-#include "Models/BloodRequest.h"
+#include "../Models/Donor.h"
+#include "../Models/Patient.h"
+#include "../Models/User.h"
+#include "../Models/BloodBag.h"
+#include "../Models/BloodRequest.h"
 
 // ============================================================
 // FileManager.h  |  Domain 4: Esha Qaisar (Team Lead)
@@ -15,7 +17,7 @@
 //
 // FileManager is a utility class that handles ALL file I/O.
 // Every other class calls FileManager instead of directly
-// opening files — this keeps file logic in ONE place.
+// opening files â€” this keeps file logic in ONE place.
 //
 // ABSTRACTION:
 //   Other classes don't need to know HOW files are opened,
@@ -23,7 +25,7 @@
 //       FileManager::saveDonor(d);
 //       FileManager::loadDonors();
 //
-// All methods are STATIC — you don't create a FileManager object.
+// All methods are STATIC â€” you don't create a FileManager object.
 // FileManager is a "namespace with methods" rather than an object.
 //
 // FILE PATHS: All .txt files are in the "Database/" folder.
@@ -77,9 +79,10 @@ public:
     static bool generateCertificate(const BloodRequest& req, const QString& outputPath);
 
 private:
-    // ---- Generic Helpers (private — only used internally) ----
+    // ---- Generic Helpers (private â€” only used internally) ----
     static QStringList readAllLines(const QString& filePath);
     static bool        writeAllLines(const QString& filePath, const QStringList& lines);
     static bool        appendLine(const QString& filePath, const QString& line);
 };
 
+#endif // FILEMANAGER_H
