@@ -50,7 +50,6 @@ BloodRequest BloodRequest::fromFileString(const QString& line) {
     return req;
 }
 
-
 // file handling
 
 void BloodRequest::saveToFile() {
