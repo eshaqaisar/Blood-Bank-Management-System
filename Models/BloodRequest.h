@@ -38,6 +38,7 @@ public:
     QString getStatus()      const { return status; }
     int     getUnitsRequired()     const { return units; } // used in FileManager 
     QString getRequiredBloodGroup()const { return bloodGroup; }   // used by FileManager
+    QDate getRequestDate() const { return requestDate; }
 
     // setter or accessor
 
