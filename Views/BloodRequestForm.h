@@ -1,25 +1,42 @@
+#pragma once
+#include <QWidget>//for QWidget
+#include <QLineEdit>//for QLineEdit
+#include <QLabel>//for labels like "Patient Name:", "Hospital:", etc.
+#include <QPushButton>//for QPushButton
+#include <QComboBox>//for QComboBox used for blood group selection
+#include <QFormLayout>//for QFormLayout to neatly arrange labels and fields
+#include <QVBoxLayout>//for QVBoxLayout to arrange the form and buttons
+#include <QMessageBox>//for QMessageBox to show success or error messages
 
-#pragma once  
-#include <QWidget>//base class for all UI elements in Qt
-#include <QLineEdit>//for text input fields in the form
-#include <QLabel>//for displaying labels next to input fields
-#include <QPushButton>//for the submit button in the form
-#include <QComboBox>//for the dropdown selection of blood groups
-#include <QFormLayout>//for organizing the form layout in a clean and structured way
+
+
 class BloodRequestForm : public QWidget {
     Q_OBJECT
+
 private:
-	QLabel* lblName;//label for patient name input
-	QLabel* lblBloodGroup;//label for blood group selection
-	QLabel* lblHospital;//label for hospital input
-	QLabel* lblUnits;//label for units needed input
-	QLineEdit* txtName;//text field for patient name input
-	QLineEdit* txtHospital;//text field for hospital input
-	QLineEdit* txtUnits;//text field for units needed input
-	QComboBox* cmbBloodGroup;//combo box for selecting blood group
-	QPushButton* btnSubmit;//button to submit the blood request form
+    QString loggedInUsername;   //store the patient's username to use as patient name
+
+    QLabel* lblName;
+    QLabel* lblBloodGroup;
+    QLabel* lblHospital;
+    QLabel* lblUnits;
+    QLabel* lblStatus;
+
+    QLineEdit* txtName;       //pre-filled and read-only with username
+    QLineEdit* txtHospital;
+    QLineEdit* txtUnits;
+    QComboBox* cmbBloodGroup;
+    QPushButton* btnSubmit;
+    QPushButton* btnCancel;
+
 public:
-	BloodRequestForm(QWidget* parent = nullptr);//constructor to initialize the form and set up the UI elements
+    //constructor now takes the logged-in username
+    explicit BloodRequestForm(const QString& username, QWidget* parent = nullptr);
+
+signals:
+    void requestSubmitted(); //emitted after a successful save so dashboard can refresh
+
 public slots:
-	void onSubmitClicked();//slot that is called when the submit button is clicked, it collects the data from the form, creates a BloodRequest object, and saves it to a file
+	void onSubmitClicked();//validates input, saves the request using FileManager, shows a success message, and emits requestSubmitted() signal
+	void onCancelClicked();//just closes the form without saving
 };

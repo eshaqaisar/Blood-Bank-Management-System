@@ -1,27 +1,59 @@
-#include <QApplication> //main application class for Qt applications
-#include <QDir>//for handling directory paths and operations
-#include <QCoreApplication> //provides an event loop for console applications, also used for application-wide settings      
-#include "Views/LandingPage.h"//for the landing page of the application
-//entry point of the application
+#include <QApplication>
+#include <QDir>
+#include <QCoreApplication>
+#include <QFile>
+#include <QMessageBox>
+#include "Views/LandingPage.h"
+
+
 int main(int argc, char* argv[])
 {
-	//create the application object, which manages application-wide resources and settings
     QApplication app(argc, argv);
-	//set the application name, which can be used for settings and organization
     app.setApplicationName("BloodBankSystem");
 
-	//set the current working directory to the application's directory
-    QDir::setCurrent(QCoreApplication::applicationDirPath());
-	//create and show the landing page
+  
+    QString exeDir = QCoreApplication::applicationDirPath();
+    if (!QDir::setCurrent(exeDir)) {
+        QMessageBox::critical(nullptr, "Startup Error",
+            "Cannot set working directory to:\n" + exeDir);
+        return 1;
+    }
+    QDir().mkpath("Database");
+    QDir().mkpath("Resources");
+
+    
+    //all forms inherit these base styles; individual forms only need to
+    //override named widgets (titles, status labels, etc.) via setObjectName().
+    QFile qss("Resources/style_light.qss");
+    if (qss.open(QIODevice::ReadOnly)) {
+        app.setStyleSheet(qss.readAll());
+        qss.close();
+    }
+    else {
+        // Inline fallback ,guarantees readable colors even if .qss is missing
+        app.setStyleSheet(
+            "QWidget    { background-color:#f5f5f5; color:#2c3e50;"
+            "             font-family:Arial; font-size:13px; }"
+            "QLineEdit  { background:#fff; color:#2c3e50;"
+            "             border:1px solid #bdc3c7; border-radius:5px;"
+            "             padding:7px 10px; min-height:32px; }"
+            "QComboBox  { background:#fff; color:#2c3e50;"
+            "             border:1px solid #bdc3c7; border-radius:5px;"
+            "             padding:6px 10px; min-height:32px; }"
+            "QPushButton{ background:#c0392b; color:#fff; border-radius:6px;"
+            "             padding:9px 18px; font-weight:bold; }"
+            "QPushButton:hover{ background:#e74c3c; }"
+            "QLabel     { color:#2c3e50; background:transparent; }"
+            "QTableWidget{ background:#fff; color:#2c3e50; gridline-color:#eee; }"
+            "QHeaderView::section{ background:#c0392b; color:#fff;"
+            "             padding:8px; font-weight:bold; border:none; }"
+        );
+    }
+
     LandingPage landingPage;
-	//set the window title for the landing page
     landingPage.setWindowTitle("Blood Bank Management System");
-	//set a reasonable default size for the landing page
-    landingPage.adjustSize();
-	//set a minimum size to prevent it from being too small
-    landingPage.setMinimumSize(400, 300);
-	//center the landing page on the screen
+    landingPage.setMinimumSize(480, 380);
     landingPage.show();
-	//start the event loop
+
     return app.exec();
 }

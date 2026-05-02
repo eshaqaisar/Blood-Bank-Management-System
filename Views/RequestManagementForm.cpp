@@ -1,115 +1,184 @@
-#include "RequestManagementForm.h"//header file for the RequestManagementForm class
-#include <QFile>//for reading and writing request data from/to the file
-#include <QTextStream>//for parsing request data from the file and writing approval certificates
-#include <QMessageBox>//for showing message boxes to the user (e.g., for warnings, confirmations, and information)
-#include <QDateTime>//for adding timestamps to approval certificates
+#include "RequestManagementForm.h"//include the header file for the RequestManagementForm class
+#include "../Utilities/FileManager.h"//for FileManager::loadRequests() and FileManager::updateRequestStatus()
+#include "../Models/BloodRequest.h"//for BloodRequest class
+#include "../Models/BloodBag.h"//for BloodBag class
+#include <QHeaderView>//for QHeaderView used in setting up the table
+#include <QMessageBox>//for QMessageBox
+#include <QDateTime>//for QDateTime used in certificate generation
+#include <QFile>//for QFile used in certificate generation
+#include <QTextStream>//for QTextStream used in certificate generation
+#include <QDir>//for QDir::mkpath() used in certificate generation
+#include <QColor>//for QColor used in status coloring
 
-RequestManagementForm::RequestManagementForm(QWidget *parent)
+RequestManagementForm::RequestManagementForm(QWidget* parent)
     : QWidget(parent)
 {
-    QVBoxLayout *mainLayout = new QVBoxLayout(this);
-	//title
-    QLabel *title = new QLabel("Request Management", this);
+    QVBoxLayout* mainLayout = new QVBoxLayout(this);
+    mainLayout->setContentsMargins(15, 15, 15, 15);
+    mainLayout->setSpacing(10);
+
+    QLabel* title = new QLabel("📋 Blood Request Management", this);
     title->setAlignment(Qt::AlignCenter);
-	//request table to display pending requests with columns for patient name, hospital, blood group, and units requested. The table allows the admin to select a request for approval or rejection.
+    title->setStyleSheet("font-size: 16px; font-weight: bold; color: #2c3e50;");
+
+	//request table setup
     requestsTable = new QTableWidget(this);
-    requestsTable->setColumnCount(4);
+    requestsTable->setColumnCount(6);
     requestsTable->setHorizontalHeaderLabels(
-        {"Patient Name", "Hospital", "Blood Group", "Units"});
-	//style the table to match the overall design of the admin dashboard
-    approveBtn = new QPushButton("Approve", this);
-    rejectBtn  = new QPushButton("Reject", this);
-	//connect buttons to their respective slots for handling clicks
-    QHBoxLayout *btnLayout = new QHBoxLayout();
+        { "Request ID", "Patient Name", "Hospital", "Blood Group", "Units", "Status" });
+    requestsTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    requestsTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+    requestsTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    requestsTable->setAlternatingRowColors(true);
+	//buttons setup
+    approveBtn = new QPushButton("✅ Approve", this);
+    rejectBtn = new QPushButton("❌ Reject", this);
+    refreshBtn = new QPushButton("🔄 Refresh", this);
+	//simple styling for a cleaner look
+    approveBtn->setStyleSheet("background:#27ae60; color:white; border-radius:5px; padding:8px; font-weight:bold;");
+    rejectBtn->setStyleSheet("background:#e74c3c; color:white; border-radius:5px; padding:8px; font-weight:bold;");
+    refreshBtn->setStyleSheet("background:#2980b9; color:white; border-radius:5px; padding:8px; font-weight:bold;");
+	//arrange buttons in a horizontal layout
+    QHBoxLayout* btnLayout = new QHBoxLayout();
     btnLayout->addWidget(approveBtn);
     btnLayout->addWidget(rejectBtn);
-	//overall layout for the request management form
+    btnLayout->addStretch();
+    btnLayout->addWidget(refreshBtn);
+	//assemble the main layout
     mainLayout->addWidget(title);
     mainLayout->addWidget(requestsTable);
     mainLayout->addLayout(btnLayout);
-	//set the main layout for the form
     setLayout(mainLayout);
-	//connect buttons to their respective slots for handling clicks
-    connect(approveBtn, &QPushButton::clicked,
-            this, &RequestManagementForm::onApproveClicked);
-    connect(rejectBtn, &QPushButton::clicked,
-            this, &RequestManagementForm::onRejectClicked);
-	//load pending requests from the file and populate the table
+	//connect buttons to their respective slots
+    connect(approveBtn, &QPushButton::clicked, this, &RequestManagementForm::onApproveClicked);
+    connect(rejectBtn, &QPushButton::clicked, this, &RequestManagementForm::onRejectClicked);
+    connect(refreshBtn, &QPushButton::clicked, this, &RequestManagementForm::onRefreshClicked);
+
     loadRequests();
 }
 
 RequestManagementForm::~RequestManagementForm() {}
-//load pending requests from the file and populate the table. This method reads the requests from the "requests.txt" file, parses each line to extract the request details, and populates the requests table with the relevant information for each pending request. The method ensures that only valid requests with the expected format are loaded into the table.
+//fetch all pending blood requests from the file and display them in the table
 void RequestManagementForm::loadRequests()
 {
     requestsTable->setRowCount(0);
-    QFile file("../Database/requests.txt");
-	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))//show an error message if the file cannot be opened and return early to prevent further errors
-        return;
-	//read the file line by line and populate the requests table. Each line is expected to be in the format: "Patient Name,Hospital,Blood Group,Units". The method splits each line by commas, trims whitespace, and populates the corresponding columns in the table. Only lines with at least 4 parts are considered valid requests and are added to the table.
-    QTextStream in(&file);
-    int row = 0;
-	while (!in.atEnd())//read each line from the file until the end is reached
-    {
-        QString line = in.readLine();
-        QStringList parts = line.split(",");
-		if (parts.size() >= 4)//check if the line has at least 4 parts (patient name, hospital, blood group, units) before trying to access them to prevent out-of-bounds errors
-        {
-            requestsTable->insertRow(row);
-			for (int i = 0; i < 4; i++)//populate the table with the request details, trimming any extra whitespace from each part
-                requestsTable->setItem(row, i,
-                    new QTableWidgetItem(parts[i].trimmed()));
-            row++;
-        }
+    requestIds.clear();
+
+	
+    QList<BloodRequest> requests = FileManager::loadRequests();
+
+    for (const BloodRequest& req : requests) {
+		//only show requests that are still pending approval
+        if (req.getStatus() != "Pending") continue;
+
+        int row = requestsTable->rowCount();
+        requestsTable->insertRow(row);
+
+        requestsTable->setItem(row, 0, new QTableWidgetItem(req.getRequestId()));
+        requestsTable->setItem(row, 1, new QTableWidgetItem(req.getPatientName()));
+        requestsTable->setItem(row, 2, new QTableWidgetItem(req.getHospitalName()));
+        requestsTable->setItem(row, 3, new QTableWidgetItem(req.getRequiredBloodGroup()));
+        requestsTable->setItem(row, 4, new QTableWidgetItem(QString::number(req.getUnitsRequired())));
+
+        QTableWidgetItem* statusItem = new QTableWidgetItem(req.getStatus());
+        statusItem->setForeground(QColor("#e67e22")); // Orange = Pending
+        requestsTable->setItem(row, 5, statusItem);
+
+		// Keep track of the request IDs in the same order as they appear in the table
+        requestIds.append(req.getRequestId());
     }
-    file.close();
+
+    if (requestsTable->rowCount() == 0) 
+    {
+        requestsTable->insertRow(0);
+        QTableWidgetItem* ph = new QTableWidgetItem("No pending requests.");
+        ph->setForeground(QColor("#aaa"));
+        requestsTable->setItem(0, 0, ph);
+        requestsTable->setSpan(0, 0, 1, 6);
+    }
 }
-//slot that is called when the "Approve" button is clicked, it checks if a request is selected in the table, retrieves the request details, updates the inventory accordingly, generates an approval certificate for the patient, and removes the approved request from the table. If no request is selected, it shows a warning message to the user.
+
 void RequestManagementForm::onApproveClicked()
 {
     int row = requestsTable->currentRow();
-	if (row < 0) //check if a request is selected in the table, if not show a warning message and return early to prevent further errors
+	if (row < 0 || row >= requestIds.size()) // Check if a valid row is selected
     {
-        QMessageBox::warning(this, "Warning", "Please select a request first!");
+        QMessageBox::warning(this, "No Selection", "Please select a request first.");
         return;
     }
-	//retrieve request details from the selected row in the table, including the patient name, blood group, and units requested. These details are used to update the inventory and generate the approval certificate.
-    QString patientName = requestsTable->item(row, 0)->text();
-    QString bloodGroup  = requestsTable->item(row, 2)->text();
-    int units = requestsTable->item(row, 3)->text().toInt();
-	//update the inventory by reducing the available units for the requested blood group. The updateInventory method is a placeholder and should be implemented to modify the inventory data accordingly (e.g., by updating the inventory file or using a BloodInventory class).
+
+    QString reqId = requestIds[row];
+    QString patient = requestsTable->item(row, 1)->text();
+    QString hospital = requestsTable->item(row, 2)->text();
+    QString bloodGroup = requestsTable->item(row, 3)->text();
+    int     units = requestsTable->item(row, 4)->text().toInt();
+
+    //ctually persist the status change to the file
+    FileManager::updateRequestStatus(reqId, "Approved");
+
+    //decrement inventory
     updateInventory(bloodGroup, units);
-	//generate an approval certificate for the patient, which is saved as a text file in the "Database" directory with a name based on the patient's name. The certificate includes the patient's name, blood group, units approved, date and time of approval, and a status indicating that the request has been approved.
-    QFile cert("../Database/certificate_" + patientName + ".txt");
-    if(cert.open(QIODevice::WriteOnly | QIODevice::Text)) {
+
+	//generate a simple text certificate for the approved request
+    QDir().mkpath("Database");
+    QString certPath = "Database/certificate_" + reqId + ".txt";
+    QFile cert(certPath);
+    if (cert.open(QIODevice::WriteOnly | QIODevice::Text)) {
         QTextStream out(&cert);
         out << "=== BLOOD BANK APPROVAL CERTIFICATE ===\n";
-        out << "Patient:     " << patientName << "\n";
-        out << "Blood Group: " << bloodGroup  << "\n";
-        out << "Units:       " << units       << "\n";
+        out << "Request ID:  " << reqId << "\n";
+        out << "Patient:     " << patient << "\n";
+        out << "Hospital:    " << hospital << "\n";
+        out << "Blood Group: " << bloodGroup << "\n";
+        out << "Units:       " << units << "\n";
         out << "Date:        " << QDateTime::currentDateTime().toString() << "\n";
         out << "Status:      APPROVED\n";
         out << "========================================\n";
         cert.close();
     }
 
-    requestsTable->removeRow(row);
-    QMessageBox::information(this, "Success", "Request approved! Certificate generated.");
+    QMessageBox::information(this, "Approved",
+        "Request " + reqId + " approved.\nInventory updated.\nCertificate saved.");
+    loadRequests(); // Refresh — approved row disappears from Pending list
 }
-//slot that is called when the "Reject" button is clicked, it checks if a request is selected in the table, and if so, it removes the selected request from the table and shows an information message indicating that the request has been rejected. If no request is selected, it shows a warning message to the user.
+//handle rejection of a blood request
 void RequestManagementForm::onRejectClicked()
 {
     int row = requestsTable->currentRow();
-    if(row < 0) {
-        QMessageBox::warning(this, "Warning", "Please select a request first!");
+    if (row < 0 || row >= requestIds.size())
+    {
+        QMessageBox::warning(this, "No Selection", "Please select a request first.");
         return;
     }
-    requestsTable->removeRow(row);
-    QMessageBox::information(this, "Rejected", "Request has been rejected.");
+
+    QString reqId = requestIds[row];
+
+    //actually persist the rejection to the file
+    FileManager::updateRequestStatus(reqId, "Rejected");
+
+    QMessageBox::information(this, "Rejected", "Request " + reqId + " has been rejected.");
+    loadRequests(); //refresh
 }
-//placeholder method to update the inventory after approving a request. This method should be implemented to modify the inventory data accordingly (e.g., by updating the inventory file or using a BloodInventory class) to reflect the reduction in available units for the requested blood group after approval.
-void RequestManagementForm::updateInventory(QString bloodGroup, int units)
+
+void RequestManagementForm::onRefreshClicked()
 {
-    Q_UNUSED(bloodGroup);
-    Q_UNUSED(units);
+    loadRequests();
+}
+//helper function to update the blood inventory when a request is approved
+void RequestManagementForm::updateInventory(const QString& bloodGroup, int units)
+{
+    BloodInventory inventory;
+    inventory.load(FileManager::INVENTORY_FILE);
+
+    bool ok = inventory.useBag(bloodGroup, units);
+    if (ok) 
+    {
+        inventory.save(FileManager::INVENTORY_FILE);
+    }
+    else 
+    {
+        QMessageBox::warning(this, "Inventory Warning",
+            "Not enough " + bloodGroup + " stock to fulfil this request.\n"
+            "Request approved but inventory not decremented — please restock.");
+    }
 }

@@ -1,56 +1,120 @@
-#include "BloodRequestForm.h"
-#include "../Models/BloodRequest.h"
-#include <QDateTime>
+#include "BloodRequestForm.h"//include the header file for the BloodRequestForm class
+#include "../Models/BloodRequest.h"//for BloodRequest class
+#include "../Utilities/FileManager.h"//for FileManager::saveRequest()
+#include <QDateTime>//for QDateTime used in generating unique request IDs
 
-//constructor: initializes the blood request form and sets up the UI elements
-BloodRequestForm::BloodRequestForm(QWidget* parent) : QWidget(parent)
+
+BloodRequestForm::BloodRequestForm(const QString& username, QWidget* parent)
+    : QWidget(parent), loggedInUsername(username)
 {
-	//create labels and input fields for the blood request form
+	//basic window setup
+    setWindowTitle("New Blood Request");
+    setMinimumWidth(420);
+	//create form fields and labels
     lblName = new QLabel("Patient Name:");
-    lblBloodGroup = new QLabel("Blood Group:");
+    lblBloodGroup = new QLabel("Blood Group Needed:");
     lblHospital = new QLabel("Hospital:");
-    lblUnits = new QLabel("Units Needed:");
+    lblUnits = new QLabel("Units Required:");
 
-
-	//input fields for the form
-    txtName = new QLineEdit();
+    //pre-fill with the logged-in username and make it read-only
+    txtName = new QLineEdit(loggedInUsername);
+    txtName->setReadOnly(true);
+    txtName->setStyleSheet("background: #f0f0f0; color: #555;");
+	//placeholders for the other fields
     txtHospital = new QLineEdit();
+    txtHospital->setPlaceholderText("Enter hospital name...");
+	//only allow numbers for units
     txtUnits = new QLineEdit();
-	//combo box for selecting blood group, with common blood types as options
+    txtUnits->setPlaceholderText("e.g. 2");
+	//set input mask to allow only digits
     cmbBloodGroup = new QComboBox();
-	//add common blood groups to the combo box for selection
-    cmbBloodGroup->addItem("A+");
-    cmbBloodGroup->addItem("A-");
-    cmbBloodGroup->addItem("B+");
-    cmbBloodGroup->addItem("B-");
-    cmbBloodGroup->addItem("O+");
-    cmbBloodGroup->addItem("O-");
-    cmbBloodGroup->addItem("AB+");
-    cmbBloodGroup->addItem("AB-");
-	//submit button for the form
-    btnSubmit = new QPushButton("Submit Request");
-	//layout the form using a QFormLayout for a clean and organized appearance
-    QFormLayout* layout = new QFormLayout();
-    layout->addRow(lblName, txtName);
-    layout->addRow(lblBloodGroup, cmbBloodGroup);
-    layout->addRow(lblHospital, txtHospital);
-    layout->addRow(lblUnits, txtUnits);
-    layout->addRow(btnSubmit);
-	//set the layout for the form
+    cmbBloodGroup->addItems({ "A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-" });
+	//status label for showing validation errors or success messages
+    lblStatus = new QLabel("");
+    lblStatus->setAlignment(Qt::AlignCenter);
+	//submit and cancel buttons
+    btnSubmit = new QPushButton("✅ Submit Request");
+    btnCancel = new QPushButton("← Cancel");
+	//arrange the form fields in a neat layout
+    QFormLayout* form = new QFormLayout();
+    form->setSpacing(12);
+    form->addRow(lblName, txtName);
+    form->addRow(lblBloodGroup, cmbBloodGroup);
+    form->addRow(lblHospital, txtHospital);
+    form->addRow(lblUnits, txtUnits);
+	//main layout for the form
+    QVBoxLayout* layout = new QVBoxLayout(this);
+    layout->setContentsMargins(30, 25, 30, 25);
+    layout->setSpacing(10);
+    layout->addWidget(new QLabel("🩸 Submit Blood Request", this));
+    layout->addLayout(form);
+    layout->addWidget(lblStatus);
+    layout->addWidget(btnSubmit);
+    layout->addWidget(btnCancel);
     setLayout(layout);
-	//set the window title for the blood request form
-    setWindowTitle("Blood Request Form");
-	//connect the submit button to the slot that handles form submission
-    connect(btnSubmit, &QPushButton::clicked, this, &BloodRequestForm::onSubmitClicked);
+	//simple styling for a cleaner look
+    setStyleSheet(R"(
+        QWidget { background: #fff; font-family: Arial; font-size: 13px; }
+        QLabel  { color: #2c3e50; }
+        QLineEdit, QComboBox {
+            padding: 7px; border: 1px solid #bdc3c7; border-radius: 5px;
+        }
+        QLineEdit:focus { border: 2px solid #c0392b; }
+        QPushButton {
+            background: #c0392b; color: white;
+            border-radius: 6px; padding: 9px; font-size: 13px; font-weight: bold;
+        }
+        QPushButton:hover { background: #e74c3c; }
+    )");
 
+    connect(btnSubmit, &QPushButton::clicked, this, &BloodRequestForm::onSubmitClicked);
+    connect(btnCancel, &QPushButton::clicked, this, &BloodRequestForm::onCancelClicked);
 }
-//slot that is called when the submit button is clicked, it collects the data from the form, creates a BloodRequest object, and saves it to a file
+
 void BloodRequestForm::onSubmitClicked()
 {
-	QString name = txtName->text();//get the patient name from the text field
-	QString hospital = txtHospital->text();//get the selected hospital from the text field
-	QString blood = cmbBloodGroup->currentText();//get the selected blood group from the combo box
-	int units = txtUnits->text().toInt();//collect data from the form fields
-	BloodRequest request("R001", name, hospital, blood, units);//create a new blood request object with the collected data (using a hardcoded ID for simplicity)
-	request.saveToFile();//save the request to a file for later processing
+    lblStatus->setText("");
+
+    //validate all fields
+    QString hospital = txtHospital->text().trimmed();
+    int     units = txtUnits->text().toInt();
+
+    if (hospital.isEmpty()) {
+        lblStatus->setText("❌ Please enter the hospital name.");
+        lblStatus->setStyleSheet("color: red;");
+        return;
+    }
+    if (units <= 0) {
+        lblStatus->setText("❌ Units must be a positive number.");
+        lblStatus->setStyleSheet("color: red;");
+        return;
+    }
+
+    //generate a unique request ID using timestamp so no two requests share "R001"
+    QString requestId = "REQ-" + QString::number(QDateTime::currentMSecsSinceEpoch());
+
+    BloodRequest request(
+        requestId,
+        loggedInUsername,               // patient name = logged-in username
+        hospital,
+        cmbBloodGroup->currentText(),
+        units
+    );
+
+    //use FileManager::saveRequest() instead of the old hardcoded saveToFile()
+    FileManager::saveRequest(request);
+
+    lblStatus->setText("✅ Request submitted successfully!");
+    lblStatus->setStyleSheet("color: green;");
+
+    QMessageBox::information(this, "Success",
+        "Your blood request has been submitted.\nRequest ID: " + requestId);
+
+    emit requestSubmitted(); //notify PatientDashboard to refresh its table
+    this->close();
+}
+
+void BloodRequestForm::onCancelClicked()
+{
+    this->close();
 }
