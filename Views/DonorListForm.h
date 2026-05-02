@@ -1,27 +1,15 @@
 #ifndef DONORLISTFORM_H
 #define DONORLISTFORM_H
 
-#include <QWidget>
-#include <QTableWidget>
-#include <QLineEdit>
-#include <QPushButton>
-#include <QLabel>
-#include <QComboBox>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
+#include <QWidget>//base class for all UI elements in Qt
+#include <QTableWidget>//for displaying the list of donors in a tabular format
+#include <QLineEdit>//for the search bar to filter donors by name
+#include <QPushButton>//for action buttons like "Add Donor", "View Profile", and "Delete"
+#include <QLabel>//for displaying the count of donors currently shown in the table
+#include <QComboBox>//for filtering donors by blood group
+#include <QVBoxLayout>//for organizing the layout of the form in a vertical manner
+#include <QHBoxLayout>//for organizing the layout of the search bar and filter in a horizontal manner
 
-// ============================================================
-// DonorListForm.h  |  Domain 1: Muhammad Ali
-// ============================================================
-//
-// Admin screen showing ALL donors in a searchable, sortable table.
-// Features:
-//   - Search by Name or Blood Group
-//   - Sort by clicking column headers (Qt built-in)
-//   - Delete selected donor
-//   - View full profile (shows Compatibility info)
-//   - Add New Donor button (opens DonorRegistrationForm)
-// ============================================================
 
 class DonorListForm : public QWidget {
     Q_OBJECT
@@ -31,23 +19,23 @@ public:
     ~DonorListForm();
 
 private slots:
-    void onSearchChanged(const QString& text); // Filter table as user types
-    void onDeleteClicked();                    // Delete selected row
-    void onAddDonorClicked();                  // Open DonorRegistrationForm
-    void onViewProfileClicked();               // Show popup with donor details + compatibility
-    void onFilterByBloodGroup(const QString& bg); // Filter table by blood group
+    void onSearchChanged(const QString& text); //filter table as user types
+    void onDeleteClicked();                    //delete selected row
+    void onAddDonorClicked();                  //open DonorRegistrationForm
+    void onViewProfileClicked();               //show popup with donor details + compatibility
+    void onFilterByBloodGroup(const QString& bg); //filter table by blood group
 
 private:
     QTableWidget* tblDonors;
     QLineEdit* txtSearch;
-    QComboBox* cmbFilter;      // Filter by blood group
+    QComboBox* cmbFilter;      //filter by blood group
     QPushButton* btnDelete;
     QPushButton* btnAdd;
     QPushButton* btnViewProfile;
-    QLabel* lblCount;       // Shows "Showing X donors"
+    QLabel* lblCount;       //shows "Showing X donors"
 
     void setupUI();
-    void loadDonors();           // Read donors.txt and fill table
+    void loadDonors();           //read donors.txt and fill table
     void applyStyle();
     void filterTable(const QString& text, const QString& bloodGroup);
 };

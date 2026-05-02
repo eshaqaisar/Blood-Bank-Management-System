@@ -1,7 +1,7 @@
 #ifndef PATIENT_H
 #define PATIENT_H
 
-#include "Person.h"
+#include "Person.h"//for the base Person class that Patient inherits from
 
 class Patient : public Person {
 private:
@@ -15,19 +15,19 @@ public:
         const QString& requiredBloodGroup, int unitsRequired,
         const QString& hospitalName, const QString& requestStatus = "Pending");
 
-    // Getters
+    //getters
     QString getRequiredBloodGroup() const;
     int     getUnitsRequired() const;
     QString getHospitalName() const;
     QString getRequestStatus() const;
 
-    // Setters
+    //setters
     void setRequiredBloodGroup(const QString& bg);
     void setUnitsRequired(int units);
     void setHospitalName(const QString& hospital);
     void setRequestStatus(const QString& status);
 
-    // Overrides
+    //overrides
     void display() const override;
     QString toFileString() const override;
 

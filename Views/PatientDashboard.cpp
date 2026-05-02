@@ -1,25 +1,23 @@
-#include "PatientDashboard.h"
-#include "../Utilities/FileManager.h"
-#include "../Models/BloodRequest.h"
+#include "PatientDashboard.h"//header file for the PatientDashboard class
+#include "../Utilities/FileManager.h"//for loading blood request data from the file
+#include "../Models/BloodRequest.h"//for the BloodRequest data structure and operations, including getters for request details
 
-#include <QHeaderView>
-#include <QMessageBox>
+#include <QHeaderView>//for customizing the appearance of the table headers
+#include <QMessageBox>//for showing message boxes to the user (e.g., for information or error messages)
 
-// ============================================================
-// Constructor
-// ============================================================
+
 PatientDashboard::PatientDashboard(const QString& username, QWidget* parent)
     : QWidget(parent), currentUsername(username)
 {
     setWindowTitle("Patient Dashboard");
     setMinimumSize(600, 400);
 
-    // Title
+    //title
     lblTitle = new QLabel("Patient Dashboard - " + currentUsername, this);
     lblTitle->setAlignment(Qt::AlignCenter);
     lblTitle->setStyleSheet("font-size: 18px; font-weight: bold;");
 
-    // Table
+    //table
     tblRequests = new QTableWidget(this);
     tblRequests->setColumnCount(6);
     tblRequests->setHorizontalHeaderLabels({
@@ -29,11 +27,11 @@ PatientDashboard::PatientDashboard(const QString& username, QWidget* parent)
     tblRequests->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     tblRequests->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
-    // Buttons
+    //buttons
     btnNewRequest = new QPushButton("New Request", this);
     btnRefresh = new QPushButton("Refresh", this);
 
-    // Layout
+    //layout
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->addWidget(lblTitle);
     layout->addWidget(tblRequests);
@@ -41,17 +39,14 @@ PatientDashboard::PatientDashboard(const QString& username, QWidget* parent)
     layout->addWidget(btnRefresh);
     setLayout(layout);
 
-    // Connections
+    //connections
     connect(btnNewRequest, &QPushButton::clicked, this, &PatientDashboard::onNewRequestClicked);
     connect(btnRefresh, &QPushButton::clicked, this, &PatientDashboard::onRefreshClicked);
 
-    // Load data initially
+    //load data initially
     loadRequests();
 }
-
-// ============================================================
-// Load Requests for this patient
-// ============================================================
+//destructor
 void PatientDashboard::loadRequests()
 {
     tblRequests->setRowCount(0);
@@ -60,7 +55,7 @@ void PatientDashboard::loadRequests()
 
     for (const BloodRequest& req : requests)
     {
-        // Only show requests for this logged-in patient
+		//only show requests that belong to the current patient
         if (req.getPatientName() != currentUsername)
             continue;
 
@@ -72,7 +67,7 @@ void PatientDashboard::loadRequests()
         tblRequests->setItem(row, 2, new QTableWidgetItem(QString::number(req.getUnitsRequired())));
         tblRequests->setItem(row, 3, new QTableWidgetItem(req.getHospitalName()));
 
-        // ⚠️ IMPORTANT: adjust if your function name is different
+		//format the request date as "yyyy-MM-dd" for display in the table
         tblRequests->setItem(row, 4, new QTableWidgetItem(
             req.getRequestDate().toString("yyyy-MM-dd")
         ));
@@ -80,18 +75,13 @@ void PatientDashboard::loadRequests()
         tblRequests->setItem(row, 5, new QTableWidgetItem(req.getStatus()));
     }
 }
-
-// ============================================================
-// Button: Refresh
-// ============================================================
+//slot that is called when the "Refresh" button is clicked, it calls the loadRequests method to reload the blood request data from the file and update the display. This allows the patient to see the most up-to-date status of their blood requests after making changes or to refresh the view if they suspect it may be outdated.
 void PatientDashboard::onRefreshClicked()
 {
     loadRequests();
 }
 
-// ============================================================
-// Button: New Request
-// ============================================================
+//slot that is called when the "New Request" button is clicked, it currently shows a message box indicating that the request form should be opened here. In a complete implementation, this slot would open a new form or dialog where the patient can fill out the details of their blood request, such as selecting the required blood group, specifying the number of units needed, and providing hospital information. After submitting the request form, the new request would be saved to the file and the dashboard would be refreshed to show the updated list of requests.
 void PatientDashboard::onNewRequestClicked()
 {
     QMessageBox::information(this, "New Request", "Open request form here.");

@@ -1,15 +1,8 @@
-﻿#include "BloodBag.h"
-#include <QFile>
-#include <QTextStream>
-#include <QDebug>
+﻿#include "BloodBag.h"//header file for the BloodBag class, which defines the data structure and operations for individual blood bags in the inventory
+#include <QFile>//for file handling when saving and loading inventory data
+#include <QTextStream>//for reading and writing inventory data to the file in a structured format
+#include <QDebug>//for logging debug information, such as the number of expired bags removed from the inventory
 
-// ============================================================
-// BloodBag.cpp  |  Domain 2: Zara Shah
-// ============================================================
-
-// ============================================================
-// BloodBag Implementation
-// ============================================================
 
 BloodBag::BloodBag(const QString& bloodGroup, int units,
     const QDate& collectionDate, const QString& donorName)
@@ -18,13 +11,13 @@ BloodBag::BloodBag(const QString& bloodGroup, int units,
 {
 }
 
-// ---- Getters ----
+//getters
 QString BloodBag::getBloodGroup()     const { return bloodGroup; }
 int     BloodBag::getUnits()          const { return units; }
 QDate   BloodBag::getCollectionDate() const { return collectionDate; }
 QString BloodBag::getDonorName()      const { return donorName; }
 
-// How many days until this bag expires? (negative = already expired)
+//how many days until this bag expires? (negative = already expired)
 int BloodBag::getDaysUntilExpiry() const {
     QDate expiryDate = collectionDate.addDays(EXPIRY_DAYS);
     return QDate::currentDate().daysTo(expiryDate);
@@ -32,13 +25,13 @@ int BloodBag::getDaysUntilExpiry() const {
 
 void BloodBag::setUnits(int u) { units = u; }
 
-// ---- Expiry Check ----
-// A bag is expired if more than 42 days have passed since collection.
+//expiry check: calculate the number of days since collection and compare to the expiry threshold
+//bag is expired if more than 42 days have passed since collection.
 bool BloodBag::isExpired() const {
     return collectionDate.daysTo(QDate::currentDate()) > EXPIRY_DAYS;
 }
 
-// ---- Serialize ----
+//serialize to a string format suitable for saving to inventory.txt, using a simple comma-separated format: "bloodGroup,units,collectionDate,donorName". The collection date is formatted as "yyyy-MM-dd" for consistency and easy parsing when loading from the file.
 QString BloodBag::toFileString() const {
     return bloodGroup + "," +
         QString::number(units) + "," +
@@ -46,7 +39,7 @@ QString BloodBag::toFileString() const {
         donorName;
 }
 
-// ---- Deserialize from inventory.txt ----
+//deserialize from inventory.txt 
 BloodBag BloodBag::fromFileString(const QString& line) {
     QStringList p = line.split(",");
     if (p.size() < 4)
@@ -59,23 +52,19 @@ BloodBag BloodBag::fromFileString(const QString& line) {
     );
 }
 
-// ============================================================
-// BloodInventory Implementation
-// ============================================================
-
-// Add a new blood bag to the inventory (called after successful donation)
+//add a new blood bag to the inventory (called after successful donation)
 void BloodInventory::addBag(const BloodBag& bag) {
     bags.append(bag);
 }
 
-// Use blood from inventory when a request is approved.
-// Finds bags of matching blood group and deducts units.
-// Returns false if not enough stock is available.
+//use blood from inventory when a request is approved.
+//finds bags of matching blood group and deducts units.
+//returns false if not enough stock is available.
 bool BloodInventory::useBag(const QString& bloodGroup, int unitsNeeded) {
     int available = getAvailableUnits(bloodGroup);
-    if (available < unitsNeeded) return false; // Not enough stock
+    if (available < unitsNeeded) return false; //not enough stock
 
-    // Deduct from bags one by one until we have enough
+    //deduct from bags one by one until we have enough
     int remaining = unitsNeeded;
     for (BloodBag& bag : bags) {
         if (bag.getBloodGroup() == bloodGroup && !bag.isExpired() && remaining > 0) {
@@ -85,8 +74,7 @@ bool BloodInventory::useBag(const QString& bloodGroup, int unitsNeeded) {
         }
     }
 
-    // Remove bags that are now empty (units == 0)
-    // NOTE: Using manual loop instead of removeIf() for Qt 5 compatibility
+    //remove bags that are now empty (units == 0)
     QList<BloodBag> nonEmpty;
     for (const BloodBag& b : bags) {
         if (b.getUnits() > 0) nonEmpty.append(b);
@@ -95,20 +83,21 @@ bool BloodInventory::useBag(const QString& bloodGroup, int unitsNeeded) {
     return true;
 }
 
-// Scan all bags and remove those past their 42-day limit
-// Qt5-compatible: manual loop instead of removeIf()
+//scan all bags and remove those past their 42-day limit
 void BloodInventory::removeExpiredBags() {
     int before = bags.size();
     QList<BloodBag> fresh;
-    for (const BloodBag& b : bags) {
-        if (!b.isExpired()) fresh.append(b);
+    for (const BloodBag& b : bags)
+    {
+        if (!b.isExpired())
+            fresh.append(b);
     }
     bags = fresh;
     int removed = before - bags.size();
     qDebug() << "Removed" << removed << "expired blood bags.";
 }
 
-// Count total available (non-expired) units of a given blood group
+//count total available (non-expired) units of a given blood group
 int BloodInventory::getAvailableUnits(const QString& bg) const {
     int total = 0;
     for (const BloodBag& bag : bags) {
@@ -119,15 +108,14 @@ int BloodInventory::getAvailableUnits(const QString& bg) const {
     return total;
 }
 
-// Check if stock for a blood group is critically low
+//check if stock for a blood group is critically low
 bool BloodInventory::isLowStock(const QString& bloodGroup) const {
     return getAvailableUnits(bloodGroup) < LOW_STOCK_THRESHOLD;
 }
 
 QList<BloodBag> BloodInventory::getAllBags() const { return bags; }
 
-// Returns a map of blood group → total available units
-// Example: { "A+": 15, "O-": 2, "B+": 8, ... }
+//returns a map of blood group → total available units
 QMap<QString, int> BloodInventory::getInventoryMap() const {
     QMap<QString, int> map;
     QStringList groups = { "A+","A-","B+","B-","AB+","AB-","O+","O-" };
@@ -137,7 +125,7 @@ QMap<QString, int> BloodInventory::getInventoryMap() const {
     return map;
 }
 
-// Returns only expired bags (for admin report)
+//returns only expired bags (for admin report)
 QList<BloodBag> BloodInventory::getExpiredBags() const {
     QList<BloodBag> expired;
     for (const BloodBag& bag : bags) {
@@ -146,7 +134,7 @@ QList<BloodBag> BloodInventory::getExpiredBags() const {
     return expired;
 }
 
-// ---- Save inventory to inventory.txt ----
+//save inventory to inventory.txt
 void BloodInventory::save(const QString& filePath) const {
     QFile file(filePath);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -154,22 +142,25 @@ void BloodInventory::save(const QString& filePath) const {
         return;
     }
     QTextStream out(&file);
-    for (const BloodBag& bag : bags) {
+    for (const BloodBag& bag : bags)
+    {
         out << bag.toFileString() << "\n";
     }
     file.close();
 }
 
-// ---- Load inventory from inventory.txt ----
+//load inventory from inventory.txt 
 void BloodInventory::load(const QString& filePath) {
-    bags.clear(); // Clear existing data before loading
+    bags.clear(); //clear existing data before loading
     QFile file(filePath);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
         qDebug() << "INFO: Inventory file not found. Starting empty:" << filePath;
         return;
     }
     QTextStream in(&file);
-    while (!in.atEnd()) {
+    while (!in.atEnd())
+    {
         QString line = in.readLine().trimmed();
         if (!line.isEmpty()) {
             bags.append(BloodBag::fromFileString(line));

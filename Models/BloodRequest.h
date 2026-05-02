@@ -2,8 +2,8 @@
 #ifndef BLOODREQUEST_H
 #define BLOODREQUEST_H
 
-#include <QString>
-#include <QDate> 
+#include <QString>//for string handling in Qt
+#include <QDate> //for handling dates in Qt, such as the request date for blood requests
 
 
 class BloodRequest {
@@ -18,12 +18,12 @@ private:
 
 public:
 
-    // default constructor  for  fromFileString() 
+    //default constructor  for  fromFileString() 
     BloodRequest() : units(0), status("Pending"),
         requestDate(QDate::currentDate()) {
     }
 
-    // constructor 
+    //constructor 
 
     BloodRequest(const QString& requestID,const QString& patientName,
        const QString& hospitalName,const QString& bloodGroup, int unit);
@@ -39,13 +39,13 @@ public:
     int     getUnitsRequired()     const { return units; } // used in FileManager 
     QString getRequiredBloodGroup()const { return bloodGroup; }   // used by FileManager
 
-    // setter or accessor
+    //setter or accessor
 
     void approve() { if (status == "Pending") status = "Approved"; }
     void reject() { if (status == "Pending") status = "Rejected"; }
 
 
-    // functions added for backword compat
+    //functions added for backword compat
     QDate getRequestDate() const;
 
     void approveRequest() { approve(); }
@@ -53,11 +53,11 @@ public:
 
     void setRequestDate(const QDate& d) { requestDate = d; }
 
-    // File Input and output required by FileManager
+    //file input and output required by FileManager
     QString      toFileString()                    const;
     static BloodRequest fromFileString(const QString& line);
 
-    // save old files
+    //save old files
     void saveToFile();
 
    
