@@ -5,7 +5,8 @@
 #include <QPushButton>//for the login buttons on the landing page
 #include <QLabel>//for the title and subtitle labels on the landing page
 #include <QVBoxLayout>//for organizing the layout of the landing page in a vertical manner
-
+#include <QPainter>      // background
+#include <QPaintEvent>
 //forward declaration to avoid circular dependency with LoginForm, since LandingPage only needs to know that LoginForm exists to open it when buttons are clicked
 class LoginForm;
 
@@ -16,6 +17,9 @@ class LandingPage : public QWidget
 public:
     explicit LandingPage(QWidget* parent = nullptr);
     ~LandingPage();
+
+protected:
+	void paintEvent(QPaintEvent* event) override;// background
 
 private slots:
 	//slots for handling button clicks to open the login form in the appropriate mode (admin or user)

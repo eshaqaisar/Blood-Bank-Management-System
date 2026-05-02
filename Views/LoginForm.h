@@ -8,7 +8,8 @@
 #include <QProgressBar>//for the live password strength indicator bar
 #include <QVBoxLayout>//for organizing the layout of the form in a vertical manner
 #include <QHBoxLayout>//for organizing the layout of the CAPTCHA display and refresh button in a horizontal manner
-
+#include <QPainter>        // for background image
+#include <QPaintEvent>  // for background image
 
 class LoginForm : public QWidget
 {
@@ -17,6 +18,8 @@ class LoginForm : public QWidget
 public:
     explicit LoginForm(const QString& mode = "User", QWidget* parent = nullptr);
     ~LoginForm();
+protected:
+    void paintEvent(QPaintEvent* event) override; // added for background 
 
 private slots:
     void onLoginClicked();    //validate credentials and route to dashboard

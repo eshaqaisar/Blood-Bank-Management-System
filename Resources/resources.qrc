@@ -16,4 +16,9 @@
         <file>style_dark.qss</file>
     </qresource>
 
+	<qresource prefix="/">
+		<file>background.jpg</file>
+		<file>splash.jpg</file>
+	</qresource>
+	
 </RCC>

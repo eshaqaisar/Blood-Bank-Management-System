@@ -2,7 +2,7 @@
 #include "LoginForm.h"//for the login form that will be opened when the user clicks the login buttons
 #include <QApplication>//for qApp used in style sheet application
 #include <QFont>//for customizing font styles in the UI, such as making the title bold and larger
-
+#include <QPainter> 
 
 LandingPage::LandingPage(QWidget* parent) : QWidget(parent) {
     setupUI();
@@ -57,20 +57,51 @@ void LandingPage::setupUI() {
 //apply custom styles to the landing page using a style sheet. This method sets the background color, font styles, and colors for various UI elements such as labels and buttons to create a cohesive and visually appealing design for the landing page. It uses a combination of inline styles and object names to target specific elements like the title, subtitle, and login buttons for styling.
 void LandingPage::applyStyle() {
     setStyleSheet(R"(
-        QWidget { background-color: #f5f5f5; }
-        #lblTitle { color: #c0392b; font-size: 22px; font-weight: bold; }
-        #lblSubtitle { color: #555; font-size: 13px; }
+        QWidget { 
+            color: #2c3e50; 
+            font-family: Arial;
+        }
+        #lblTitle { 
+            color: #8B0000; 
+            font-size: 22px; 
+            font-weight: bold;
+            background: transparent;
+        }
+        #lblSubtitle { 
+            color: #2c3e50; 
+            font-size: 13px;
+            font-weight: bold;
+            background: transparent;
+        }
         #btnAdmin {
-            background-color: #2c3e50; color: white;
-            border-radius: 8px; font-size: 15px; font-weight: bold;
+            background-color: #2c3e50; 
+            color: white;
+            border-radius: 8px; 
+            font-size: 15px; 
+            font-weight: bold;
+            border: none;
         }
         #btnAdmin:hover { background-color: #34495e; }
         #btnUser {
-            background-color: #c0392b; color: white;
-            border-radius: 8px; font-size: 15px; font-weight: bold;
+            background-color: #8B0000; 
+            color: white;
+            border-radius: 8px; 
+            font-size: 15px; 
+            font-weight: bold;
+            border: none;
         }
-        #btnUser:hover { background-color: #e74c3c; }
+        #btnUser:hover { background-color: #c0392b; }
     )");
+}
+
+// added for background
+
+void LandingPage::paintEvent(QPaintEvent* event)
+{
+    QPainter painter(this);
+    QPixmap bg(":/background.jpg");
+    painter.drawPixmap(0, 0, width(), height(), bg);
+    (void)event;
 }
 
 //admin Login button clicked — open the login form for admins. The slot creates a new instance of the LoginForm class, passing "Admin" as an argument to indicate that the login form should expect admin credentials. The landing page is hidden while the login form is open to provide a focused experience for the user during the login process.

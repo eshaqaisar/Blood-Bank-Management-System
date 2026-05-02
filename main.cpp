@@ -4,7 +4,7 @@
 #include <QFile>
 #include <QMessageBox>
 #include "Views/LandingPage.h"
-
+#include "SplashPage.h"
 
 int main(int argc, char* argv[])
 {
@@ -50,10 +50,9 @@ int main(int argc, char* argv[])
         );
     }
 
-    LandingPage landingPage;
-    landingPage.setWindowTitle("Blood Bank Management System");
-    landingPage.setMinimumSize(480, 380);
-    landingPage.show();
+    SplashPage splash;
+    splash.show();
 
+  
     return app.exec();
 }

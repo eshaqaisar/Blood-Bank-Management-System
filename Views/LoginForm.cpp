@@ -9,6 +9,7 @@
 #include <QMessageBox>
 #include <QRandomGenerator>
 #include <QFont>
+#include <QPainter> 
 
 // LoginForm.cpp
 // Part: Esha Qaisar
@@ -201,14 +202,19 @@ void LoginForm::onBackClicked() {
     this->close();
 }
 
+void LoginForm::paintEvent(QPaintEvent* event)
+{
+    QPainter painter(this);
+    QPixmap bg(":/background.jpg");
+    painter.drawPixmap(0, 0, width(), height(), bg);
+    (void)event;
+}
+
+
 void LoginForm::applyStyle()
 {
-    // ✅ FIX: Added explicit color:#2c3e50 to QWidget so text is ALWAYS
-    //         dark regardless of whether dark mode was previously active.
-    //         Added min-height to inputs so they stay visible when window shrinks.
     setStyleSheet(R"(
         QWidget {
-            background-color: #ffffff;
             color: #2c3e50;
             font-family: Arial;
             font-size: 13px;
@@ -220,20 +226,25 @@ void LoginForm::applyStyle()
         #lblTitle {
             font-size: 20px;
             font-weight: bold;
-            color: #2c3e50;
+            color: #8B0000;
+            background: transparent;
         }
         #lblCaptcha {
             font-size: 22px;
             font-weight: bold;
             letter-spacing: 4px;
-            background: #ecf0f1;
+            background: rgba(255,255,255,200);
             border-radius: 6px;
             padding: 8px;
             color: #2c3e50;
         }
-        #lblStatus { font-size: 12px; font-weight: bold; }
+        #lblStatus { 
+            font-size: 12px; 
+            font-weight: bold;
+            background: transparent;
+        }
         QLineEdit {
-            background-color: #ffffff;
+            background-color: rgba(255,255,255,180);
             color: #2c3e50;
             padding: 9px 12px;
             border: 1px solid #bdc3c7;
@@ -241,25 +252,24 @@ void LoginForm::applyStyle()
             font-size: 13px;
             min-height: 34px;
         }
-        QLineEdit:focus { border: 2px solid #c0392b; background-color: #fff9f9; }
-        QLineEdit:disabled { background-color: #ecf0f1; color: #95a5a6; }
+        QLineEdit:focus { border: 2px solid #c0392b; background-color: rgba(255,249,249,220); }
         QPushButton {
-            background-color: #c0392b;
+            background-color: #8B0000;
             color: #ffffff;
             border-radius: 6px;
             padding: 10px;
             font-size: 13px;
             font-weight: bold;
             min-height: 36px;
+            border: none;
         }
-        QPushButton:hover { background-color: #e74c3c; }
-        QPushButton:pressed { background-color: #a93226; }
+        QPushButton:hover { background-color: #c0392b; }
+        QPushButton:pressed { background-color: #6B0000; }
         QProgressBar {
             border: 1px solid #bdc3c7;
             border-radius: 4px;
             height: 12px;
-            background: #ecf0f1;
-            color: #2c3e50;
+            background: rgba(255,255,255,150);
         }
     )");
 }
