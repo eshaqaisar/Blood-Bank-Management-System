@@ -1,179 +1,220 @@
 /* ============================================================
-   style_light.qss  —  Light Theme
-   Applied app-wide via: qApp->setStyleSheet(...)
-   ============================================================
+   style_light.qss  —  Light Theme  (Blood Bank System)
+   Applied globally via qApp->setStyleSheet() from main.cpp
+   and re-applied by AdminDashboard when switching from dark mode.
 
-   COLOR PALETTE (Light Mode):
-     Background   : #f5f5f5  (off-white)
-     Primary      : #c0392b  (blood red)
-     Secondary    : #2c3e50  (dark navy)
-     Accent green : #27ae60
-     Text         : #2c3e50
-     Border       : #bdc3c7
+   COLOR PALETTE:
+     Background  : #f5f5f5   (soft off-white)
+     Surface     : #ffffff   (card / input)
+     Primary     : #c0392b   (blood red)
+     Dark nav    : #2c3e50   (sidebar / headings)
+     Text        : #2c3e50   (always dark on light bg)
+     SubText     : #555555
+     Border      : #bdc3c7
+     Focus ring  : #c0392b
+     Success     : #27ae60
+     Warning     : #e67e22
+     Danger      : #e74c3c
    ============================================================ */
 
-/* ---- Base Widget ---- */
+/* ── Base ──────────────────────────────────────────────────── */
 QWidget {
     background-color: #f5f5f5;
-    color: #2c3e50;
+    color: #2c3e50;                 /* ← explicit: prevents white-on-white */
     font-family: "Segoe UI", Arial, sans-serif;
     font-size: 13px;
 }
 
-/* ---- Main Window ---- */
-QMainWindow {
-    background-color: #f5f5f5;
+QDialog {
+    background-color: #ffffff;
+    color: #2c3e50;
 }
 
-/* ---- Labels ---- */
+/* ── Labels ─────────────────────────────────────────────────── */
 QLabel {
     color: #2c3e50;
     background: transparent;
+    font-size: 13px;
 }
 
-/* ---- Line Edit (text input) ---- */
+/* ── Line Edit (text input) ─────────────────────────────────── */
 QLineEdit {
     background-color: #ffffff;
     color: #2c3e50;
     border: 1px solid #bdc3c7;
     border-radius: 6px;
-    padding: 7px 10px;
+    padding: 8px 12px;
     font-size: 13px;
+    min-height: 34px;               /* ← always tall enough to see */
     selection-background-color: #fadbd8;
+    selection-color: #2c3e50;
 }
 QLineEdit:focus {
     border: 2px solid #c0392b;
     background-color: #fff9f9;
+}
+QLineEdit:read-only {
+    background-color: #ecf0f1;
+    color: #7f8c8d;
 }
 QLineEdit:disabled {
     background-color: #ecf0f1;
     color: #95a5a6;
 }
 
-/* ---- Push Button ---- */
+/* ── Push Button ────────────────────────────────────────────── */
 QPushButton {
     background-color: #c0392b;
     color: #ffffff;
     border: none;
     border-radius: 7px;
-    padding: 9px 18px;
+    padding: 10px 20px;
     font-size: 13px;
     font-weight: bold;
+    min-height: 36px;
     min-width: 80px;
 }
-QPushButton:hover {
-    background-color: #e74c3c;
-}
-QPushButton:pressed {
-    background-color: #a93226;
-}
+QPushButton:hover   { background-color: #e74c3c; }
+QPushButton:pressed { background-color: #a93226; }
 QPushButton:disabled {
     background-color: #bdc3c7;
     color: #7f8c8d;
 }
 
-/* ---- ComboBox (dropdown) ---- */
+/* ── ComboBox (dropdown) ────────────────────────────────────── */
 QComboBox {
     background-color: #ffffff;
     color: #2c3e50;
     border: 1px solid #bdc3c7;
     border-radius: 6px;
-    padding: 6px 10px;
+    padding: 7px 12px;
     font-size: 13px;
+    min-height: 34px;
     min-width: 100px;
 }
-QComboBox:focus {
-    border: 2px solid #c0392b;
-}
-QComboBox::drop-down {
-    border: none;
-    width: 22px;
-}
+QComboBox:focus   { border: 2px solid #c0392b; }
+QComboBox::drop-down { border: none; width: 24px; }
 QComboBox QAbstractItemView {
     background-color: #ffffff;
     color: #2c3e50;
     selection-background-color: #fadbd8;
+    selection-color: #2c3e50;
     border: 1px solid #bdc3c7;
     border-radius: 4px;
+    padding: 4px;
 }
 
-/* ---- SpinBox ---- */
+/* ── SpinBox ─────────────────────────────────────────────────── */
 QSpinBox {
     background-color: #ffffff;
+    color: #2c3e50;
     border: 1px solid #bdc3c7;
     border-radius: 6px;
-    padding: 6px;
-    font-size: 13px;
+    padding: 7px;
+    min-height: 34px;
 }
 QSpinBox:focus { border: 2px solid #c0392b; }
 
-/* ---- Table Widget ---- */
+/* ── Table Widget ───────────────────────────────────────────── */
 QTableWidget {
     background-color: #ffffff;
+    color: #2c3e50;
     gridline-color: #ecf0f1;
     border: 1px solid #dde1e4;
     border-radius: 6px;
-    alternate-background-color: #fdfcfc;
+    alternate-background-color: #fdf8f8;
     selection-background-color: #fadbd8;
     selection-color: #2c3e50;
+    font-size: 13px;
 }
 QTableWidget::item {
-    padding: 5px 8px;
+    padding: 6px 10px;
+    color: #2c3e50;
 }
 QHeaderView::section {
     background-color: #c0392b;
     color: #ffffff;
     font-weight: bold;
-    padding: 8px;
+    font-size: 13px;
+    padding: 9px 10px;
     border: none;
     border-right: 1px solid #a93226;
 }
-QHeaderView::section:last {
-    border-right: none;
-}
+QHeaderView::section:last { border-right: none; }
+QTableCornerButton::section { background-color: #c0392b; }
 
-/* ---- Progress Bar ---- */
+/* ── Progress Bar ───────────────────────────────────────────── */
 QProgressBar {
     background-color: #ecf0f1;
+    color: #2c3e50;
     border: 1px solid #bdc3c7;
     border-radius: 5px;
-    height: 14px;
+    min-height: 14px;
     text-align: center;
     font-size: 10px;
-    color: #2c3e50;
 }
 QProgressBar::chunk {
     background-color: #27ae60;
     border-radius: 5px;
 }
 
-/* ---- Scroll Bar (vertical) ---- */
+/* ── Scroll Bar ─────────────────────────────────────────────── */
 QScrollBar:vertical {
     background: #ecf0f1;
     width: 10px;
     border-radius: 5px;
+    margin: 0;
 }
 QScrollBar::handle:vertical {
     background: #bdc3c7;
     border-radius: 5px;
     min-height: 30px;
 }
-QScrollBar::handle:vertical:hover {
-    background: #c0392b;
-}
+QScrollBar::handle:vertical:hover { background: #c0392b; }
 QScrollBar::add-line:vertical,
 QScrollBar::sub-line:vertical { height: 0px; }
+QScrollBar:horizontal {
+    background: #ecf0f1;
+    height: 10px;
+    border-radius: 5px;
+}
+QScrollBar::handle:horizontal {
+    background: #bdc3c7;
+    border-radius: 5px;
+    min-width: 30px;
+}
+QScrollBar::handle:horizontal:hover { background: #c0392b; }
+QScrollBar::add-line:horizontal,
+QScrollBar::sub-line:horizontal { width: 0px; }
 
-/* ---- Message Box ---- */
+/* ── Message Box ────────────────────────────────────────────── */
 QMessageBox {
     background-color: #ffffff;
+    color: #2c3e50;
 }
+QMessageBox QLabel { color: #2c3e50; }
 QMessageBox QPushButton {
     min-width: 80px;
     padding: 7px 16px;
 }
 
-/* ---- Sidebar widget (AdminDashboard) ---- */
+/* ── Scroll Area ─────────────────────────────────────────────── */
+QScrollArea {
+    background-color: transparent;
+    border: none;
+}
+QScrollArea > QWidget > QWidget {
+    background-color: transparent;
+}
+
+/* ── Form Layout labels (left-side labels in QFormLayout) ───── */
+QFormLayout QLabel {
+    color: #2c3e50;
+    font-weight: 500;
+    padding-right: 6px;
+}
+
+/* ── Admin Dashboard Sidebar ────────────────────────────────── */
 #sidebar {
     background-color: #2c3e50;
     border-right: 2px solid #1a252f;
@@ -181,18 +222,20 @@ QMessageBox QPushButton {
 #sidebar QLabel {
     color: #ecf0f1;
     font-weight: bold;
-    font-size: 12px;
+    font-size: 11px;
     padding: 8px 4px 4px 4px;
+    text-transform: uppercase;
 }
 #sidebar QPushButton {
     background-color: #34495e;
     color: #ecf0f1;
     border-radius: 5px;
     text-align: left;
-    padding: 10px 12px;
+    padding: 10px 14px;
     font-size: 13px;
     font-weight: normal;
     border: none;
+    min-height: 38px;
 }
 #sidebar QPushButton:hover {
     background-color: #c0392b;
@@ -200,7 +243,7 @@ QMessageBox QPushButton {
     font-weight: bold;
 }
 
-/* ---- Top bar labels ---- */
+/* ── Top bar ─────────────────────────────────────────────────── */
 #lblWelcome {
     font-size: 14px;
     font-weight: bold;
@@ -213,3 +256,41 @@ QMessageBox QPushButton {
     font-size: 12px;
     padding: 6px;
 }
+
+/* ── Stacked widget area ─────────────────────────────────────── */
+QStackedWidget {
+    background-color: #f5f5f5;
+}
+
+/* ── Named widgets used by individual forms ──────────────────── */
+#lblTitle   { font-size: 20px; font-weight: bold; color: #c0392b; }
+#lblSubtitle{ color: #555555; font-size: 13px; }
+#lblStatus  { font-size: 12px; font-weight: bold; }
+#lblCaptcha {
+    font-size: 22px;
+    font-weight: bold;
+    letter-spacing: 4px;
+    background: #ecf0f1;
+    border-radius: 6px;
+    padding: 8px;
+    color: #2c3e50;
+}
+#lblCount   { color: #888; font-size: 12px; }
+#lblSummary { font-size: 13px; padding: 6px; border-radius: 5px; }
+#lblHint    { color: #888; font-size: 11px; }
+#btnAdmin {
+    background-color: #2c3e50;
+    color: #ffffff;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: bold;
+}
+#btnAdmin:hover { background-color: #34495e; }
+#btnUser {
+    background-color: #c0392b;
+    color: #ffffff;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: bold;
+}
+#btnUser:hover  { background-color: #e74c3c; }
