@@ -1,8 +1,8 @@
 
 #ifndef COMPATIBILITY_H
 #define COMPATIBILITY_H
-#include <QString>
-#include <QList>
+#include <QString>//for handling blood group strings and other text data
+#include <QList>//for returning lists of compatible blood groups in the compatibility checker functions
 
 
 

@@ -1,24 +1,22 @@
-#include "DonorDashboard.h"
-#include "LandingPage.h"
-#include "../Utilities/FileManager.h"
-#include "../Models/Donor.h"
-#include <QTableWidgetItem>   
-#include <QHeaderView>        
-#include <QAbstractItemView>  
-#include <QColor>             
-#include <QFont>              
-
-
+#include "DonorDashboard.h"//header file for the donor dashboard view
+#include "LandingPage.h" //header file for the landing page view
+#include "../Utilities/FileManager.h"//header file for file management utilities
+#include "../Models/Donor.h"//header file for the Donor model
+#include <QTableWidgetItem>//header file for table widget items
+#include <QHeaderView>//header file for table header view
+#include <QAbstractItemView>//header file for abstract item view (for setting edit triggers)
+#include <QColor>//header file for color definitions
+#include <QFont>//header file for font definitions
 
 DonorDashboard::DonorDashboard(const QString& donorUsername, QWidget* parent)
     : QWidget(parent), donorUsername(donorUsername)
 {
     setupUI();
-    loadDonorProfile(); // Populate labels from file
+    loadDonorProfile();
     applyStyle();
 }
 DonorDashboard::~DonorDashboard() {}
-
+//initializes the UI components and layout for the donor dashboard
 void DonorDashboard::setupUI() {
     setWindowTitle("Donor Dashboard");
     setMinimumSize(600, 500);
@@ -32,11 +30,10 @@ void DonorDashboard::setupUI() {
     lblEligibility = new QLabel("Eligible to Donate: —", this);
     lblLastDonation = new QLabel("Last Donation: —", this);
 
-    // Donation history table
-    tblHistory = new QTableWidget(0, 2, this); // 0 rows, 2 columns
+    tblHistory = new QTableWidget(0, 2, this);
     tblHistory->setHorizontalHeaderLabels({ "Date", "Units Donated" });
     tblHistory->horizontalHeader()->setStretchLastSection(true);
-    tblHistory->setEditTriggers(QAbstractItemView::NoEditTriggers); // Read-only
+    tblHistory->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
     btnLogout = new QPushButton("🚪 Logout", this);
     connect(btnLogout, &QPushButton::clicked, this, &DonorDashboard::onLogout);
@@ -55,14 +52,12 @@ void DonorDashboard::setupUI() {
     setLayout(layout);
 }
 
-// ---- Load the donor's data from donors.txt and display it ----
 void DonorDashboard::loadDonorProfile() {
-    // Find the donor whose name matches the username (simplified match)
     QList<Donor> donors = FileManager::loadDonors();
     for (const Donor& d : donors) {
         if (d.getName().toLower().contains(donorUsername.toLower()) ||
             d.getContact() == donorUsername) {
-            // Found — populate labels using ENCAPSULATED getters
+
             lblName->setText("Name: " + d.getName());
             lblBloodGroup->setText("Blood Group: " + d.getBloodGroup());
             lblEligibility->setText(
@@ -72,7 +67,6 @@ void DonorDashboard::loadDonorProfile() {
                     ? d.getLastDonationDate().toString("dd-MM-yyyy")
                     : "No previous donation"));
 
-            // Populate history table
             QStringList history = d.getDonationHistory();
             tblHistory->setRowCount(history.size());
             for (int i = 0; i < history.size(); i++) {
@@ -93,14 +87,43 @@ void DonorDashboard::onLogout() {
 }
 
 void DonorDashboard::applyStyle() {
+	//apply a clean and modern style to the donor dashboard using Qt's stylesheet
     setStyleSheet(R"(
-        QWidget { background: #fff; font-family: Arial; font-size: 13px; }
-        #lblTitle { font-size: 20px; font-weight: bold; color: #c0392b; }
-        QLabel { font-size: 13px; color: #2c3e50; }
-        QTableWidget { border: 1px solid #ddd; }
+        QWidget {
+            background-color: #ffffff;
+            color: #2c3e50;
+            font-family: Arial;
+            font-size: 13px;
+        }
+        QLabel {
+            font-size: 13px;
+            color: #2c3e50;
+            background: transparent;
+        }
+        #lblTitle {
+            font-size: 20px;
+            font-weight: bold;
+            color: #c0392b;
+        }
+        QTableWidget {
+            border: 1px solid #ddd;
+            background-color: #ffffff;
+            color: #2c3e50;
+            gridline-color: #f0f0f0;
+        }
+        QTableWidget::item { color: #2c3e50; padding: 5px 8px; }
+        QTableWidget::item:selected { background: #fadbd8; color: #2c3e50; }
+        QHeaderView::section {
+            background: #c0392b; color: #ffffff;
+            padding: 7px; font-weight: bold; border: none;
+        }
         QPushButton {
-            background: #2c3e50; color: white;
-            border-radius: 6px; padding: 9px; font-size: 13px;
+            background: #2c3e50;
+            color: #ffffff;
+            border-radius: 6px;
+            padding: 9px;
+            font-size: 13px;
+            min-height: 36px;
         }
         QPushButton:hover { background: #34495e; }
     )");

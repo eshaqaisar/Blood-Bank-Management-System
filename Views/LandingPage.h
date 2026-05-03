@@ -1,52 +1,41 @@
 ﻿#ifndef LANDINGPAGE_H
 #define LANDINGPAGE_H
 
-#include <QWidget>
-#include <QPushButton>
-#include <QLabel>
-#include <QVBoxLayout>
-
-
-// LandingPage.h 
-// Part: Esha Qaisar
-
-// The FIRST screen shown when the app launches.
-// Has two buttons:
-//   1. "Login as Admin"  → opens LoginForm with Admin mode
-//   2. "Login as User"   → opens LoginForm with User mode
-//
-// Qt Concepts Used:
-//   - QWidget: base class for all UI elements
-//   - SIGNAL/SLOT: button click → navigate to LoginForm
-//   - QVBoxLayout: arranges widgets vertically
-
-
-// Forward declaration to avoid circular includes
+#include <QWidget>//base class for all UI elements in Qt
+#include <QPushButton>//for the login buttons on the landing page
+#include <QLabel>//for the title and subtitle labels on the landing page
+#include <QVBoxLayout>//for organizing the layout of the landing page in a vertical manner
+#include <QPainter>      // background
+#include <QPaintEvent>
+//forward declaration to avoid circular dependency with LoginForm, since LandingPage only needs to know that LoginForm exists to open it when buttons are clicked
 class LoginForm;
 
 class LandingPage : public QWidget 
 {
-    Q_OBJECT  // Required for Qt SIGNAL/SLOT system to work
+	Q_OBJECT  //macro to enable Qt's signal and slot mechanism for this class
 
 public:
     explicit LandingPage(QWidget* parent = nullptr);
     ~LandingPage();
 
+protected:
+	void paintEvent(QPaintEvent* event) override;// background
+
 private slots:
-    // These slots are connected to button clicks
-    void onAdminLoginClicked();  // Opens LoginForm in Admin mode
-    void onUserLoginClicked();   // Opens LoginForm in User mode
+	//slots for handling button clicks to open the login form in the appropriate mode (admin or user)
+	void onAdminLoginClicked(); //slot that is called when the "Login as Admin" button is clicked, it will open the login form in admin mode 
+	void onUserLoginClicked();  //slot that is called when the "Login as Donor / Patient" button is clicked, it will open the login form in user mode
 
 private:
-    // UI Widgets 
+	//ui elements
     QPushButton* btnAdminLogin;
     QPushButton* btnUserLogin;
     QLabel* lblTitle;
     QLabel* lblSubtitle;
 
-    // Setup helper 
-    void setupUI();   // Creates and arranges all widgets
-    void applyStyle(); // Applies CSS-like stylesheet
+	//helper functions to set up the UI and apply styles
+	void setupUI();   //initializes the user interface elements and layouts for the landing page
+	void applyStyle(); //applies custom styles to the landing page, such as colors and fonts, to create a visually appealing and welcoming interface for users when they first open the application
 };
 
 #endif // LANDINGPAGE_H

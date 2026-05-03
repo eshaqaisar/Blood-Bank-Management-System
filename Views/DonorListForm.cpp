@@ -1,18 +1,16 @@
-#include "DonorListForm.h"
-#include "DonorRegistrationForm.h"
-#include "../Utilities/FileManager.h"
-#include "../Utilities/Compatibility.h"
-#include "../Models/Donor.h"
-#include <QMessageBox>
-#include <QHeaderView>
-#include <QTableWidgetItem>   // REQUIRED: QTableWidgetItem for each cell
-#include <QAbstractItemView>  // REQUIRED: SelectRows, NoEditTriggers
-#include <QColor>             // REQUIRED: setForeground() color
-#include <QFont>              // REQUIRED: QFont for bold blood group label
+#include "DonorListForm.h"//forward declaration of DonorListForm class
+#include "DonorRegistrationForm.h"//forward declaration of DonorRegistrationForm class
+#include "../Utilities/FileManager.h"//forward declaration of FileManager class
+#include "../Utilities/Compatibility.h"//forward declaration of CompatibilityChecker class
+#include "../Models/Donor.h"//forward declaration of Donor class
+#include <QMessageBox>//for showing message boxes
+#include <QHeaderView>//for customizing table headers
+#include <QTableWidgetItem>//for working with table items
+#include <QAbstractItemView>//for setting selection behavior of the table
+#include <QColor>//for setting text colors
+#include <QFont>//for setting font styles
 
-// ============================================================
-// DonorListForm.cpp  |  Domain 1: Muhammad Ali
-// ============================================================
+
 
 DonorListForm::DonorListForm(QWidget* parent) : QWidget(parent) {
     setupUI();
@@ -22,33 +20,26 @@ DonorListForm::DonorListForm(QWidget* parent) : QWidget(parent) {
 DonorListForm::~DonorListForm() {}
 
 void DonorListForm::setupUI() {
-    // ---- Search Bar ----
     txtSearch = new QLineEdit(this);
     txtSearch->setPlaceholderText("🔍 Search by name...");
     connect(txtSearch, &QLineEdit::textChanged, this, &DonorListForm::onSearchChanged);
 
-    // ---- Blood Group Filter ----
     cmbFilter = new QComboBox(this);
     cmbFilter->addItem("All Groups");
     cmbFilter->addItems({ "A+","A-","B+","B-","AB+","AB-","O+","O-" });
-    connect(cmbFilter, &QComboBox::currentTextChanged,
-        this, &DonorListForm::onFilterByBloodGroup);
+    connect(cmbFilter, &QComboBox::currentTextChanged, this, &DonorListForm::onFilterByBloodGroup);
 
-    // ---- Donor Table ----
-    // Columns: Name | Age | City | Blood Group | Eligible | Last Donation
     tblDonors = new QTableWidget(0, 6, this);
     tblDonors->setHorizontalHeaderLabels(
         { "Name","Age","City","Blood Group","Eligible","Last Donation" });
     tblDonors->horizontalHeader()->setStretchLastSection(true);
-    tblDonors->setSelectionBehavior(QAbstractItemView::SelectRows); // Full row selection
-    tblDonors->setEditTriggers(QAbstractItemView::NoEditTriggers);   // Read-only
-    tblDonors->setSortingEnabled(true); // Click column header to sort
+    tblDonors->setSelectionBehavior(QAbstractItemView::SelectRows);
+    tblDonors->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    tblDonors->setSortingEnabled(true);
 
-    // ---- Donor Count Label ----
     lblCount = new QLabel("Donors: 0", this);
     lblCount->setObjectName("lblCount");
 
-    // ---- Action Buttons ----
     btnAdd = new QPushButton("➕ Add Donor", this);
     btnViewProfile = new QPushButton("👁 View Profile", this);
     btnDelete = new QPushButton("🗑 Delete", this);
@@ -57,14 +48,12 @@ void DonorListForm::setupUI() {
     connect(btnViewProfile, &QPushButton::clicked, this, &DonorListForm::onViewProfileClicked);
     connect(btnDelete, &QPushButton::clicked, this, &DonorListForm::onDeleteClicked);
 
-    // ---- Top Bar: search + filter ----
     QHBoxLayout* topBar = new QHBoxLayout();
     topBar->addWidget(txtSearch);
     topBar->addWidget(new QLabel("Filter:", this));
     topBar->addWidget(cmbFilter);
     topBar->addWidget(lblCount);
 
-    // ---- Button Row ----
     QHBoxLayout* btnRow = new QHBoxLayout();
     btnRow->addWidget(btnAdd);
     btnRow->addWidget(btnViewProfile);
@@ -80,10 +69,9 @@ void DonorListForm::setupUI() {
     setLayout(layout);
 }
 
-// ---- Read all donors from file and populate table ----
 void DonorListForm::loadDonors() {
     QList<Donor> donors = FileManager::loadDonors();
-    tblDonors->setRowCount(0); // Clear before refilling
+    tblDonors->setRowCount(0);
 
     for (const Donor& d : donors) {
         int row = tblDonors->rowCount();
@@ -94,7 +82,6 @@ void DonorListForm::loadDonors() {
         tblDonors->setItem(row, 2, new QTableWidgetItem(d.getCity()));
         tblDonors->setItem(row, 3, new QTableWidgetItem(d.getBloodGroup()));
 
-        // Color-code eligibility
         QTableWidgetItem* eligItem = new QTableWidgetItem(d.isEligible() ? "✅ Yes" : "❌ No");
         eligItem->setForeground(d.isEligible() ? QColor("#27ae60") : QColor("#e74c3c"));
         tblDonors->setItem(row, 4, eligItem);
@@ -106,7 +93,6 @@ void DonorListForm::loadDonors() {
     lblCount->setText("Donors: " + QString::number(donors.size()));
 }
 
-// ---- Live search: hide rows that don't match ----
 void DonorListForm::onSearchChanged(const QString& text) {
     filterTable(text, cmbFilter->currentText());
 }
@@ -115,19 +101,15 @@ void DonorListForm::onFilterByBloodGroup(const QString& bg) {
     filterTable(txtSearch->text(), bg);
 }
 
-// ---- Hide rows that don't match BOTH search text and blood group ----
 void DonorListForm::filterTable(const QString& text, const QString& bloodGroup) {
     for (int row = 0; row < tblDonors->rowCount(); row++) {
-        bool nameMatch = tblDonors->item(row, 0)->text()
-            .contains(text, Qt::CaseInsensitive);
+        bool nameMatch = tblDonors->item(row, 0)->text().contains(text, Qt::CaseInsensitive);
         bool bgMatch = (bloodGroup == "All Groups") ||
             tblDonors->item(row, 3)->text() == bloodGroup;
-        // Hide row if either condition fails
         tblDonors->setRowHidden(row, !(nameMatch && bgMatch));
     }
 }
 
-// ---- Delete the selected donor ----
 void DonorListForm::onDeleteClicked() {
     int row = tblDonors->currentRow();
     if (row < 0) {
@@ -138,12 +120,11 @@ void DonorListForm::onDeleteClicked() {
     auto reply = QMessageBox::question(this, "Confirm Delete",
         "Are you sure you want to delete donor: " + name + "?");
     if (reply == QMessageBox::Yes) {
-        FileManager::deleteDonor(name); // Remove from donors.txt
-        loadDonors(); // Refresh table
+        FileManager::deleteDonor(name);
+        loadDonors();
     }
 }
 
-// ---- Show detailed donor info + blood compatibility in popup ----
 void DonorListForm::onViewProfileClicked() {
     int row = tblDonors->currentRow();
     if (row < 0) {
@@ -151,12 +132,9 @@ void DonorListForm::onViewProfileClicked() {
         return;
     }
     QString name = tblDonors->item(row, 0)->text();
-    // Find full donor from file
     for (const Donor& d : FileManager::loadDonors()) {
         if (d.getName() == name) {
-            // Get compatible recipient blood groups using CompatibilityChecker
             QStringList recipients = CompatibilityChecker::getCompatibleRecipients(d.getBloodGroup());
-
             QString info =
                 "Name:        " + d.getName() + "\n"
                 "Age:         " + QString::number(d.getAge()) + "\n"
@@ -175,25 +153,64 @@ void DonorListForm::onViewProfileClicked() {
 void DonorListForm::onAddDonorClicked() {
     DonorRegistrationForm* form = new DonorRegistrationForm();
     form->show();
-    // Refresh table after the form is closed
     connect(form, &QObject::destroyed, this, &DonorListForm::loadDonors);
 }
 
 void DonorListForm::applyStyle() {
+	//set a modern and clean style for the donor list form using Qt's stylesheet
     setStyleSheet(R"(
-        QWidget { background: #fdfdfd; font-family: Arial; font-size: 13px; }
-        #lblCount { color: #888; font-size: 12px; }
-        QLineEdit { padding: 7px; border: 1px solid #ccc; border-radius: 5px; }
-        QLineEdit:focus { border: 2px solid #c0392b; }
-        QComboBox { padding: 6px; border: 1px solid #ccc; border-radius: 5px; }
-        QTableWidget { border: 1px solid #ddd; gridline-color: #f0f0f0; }
-        QHeaderView::section {
-            background: #c0392b; color: white; padding: 7px; font-weight: bold;
+        QWidget {
+            background-color: #fdfdfd;
+            color: #2c3e50;
+            font-family: Arial;
+            font-size: 13px;
         }
+        QLabel {
+            color: #2c3e50;
+            background: transparent;
+        }
+        #lblCount { color: #888888; font-size: 12px; }
+        QLineEdit {
+            background-color: #ffffff;
+            color: #2c3e50;
+            padding: 7px 10px;
+            border: 1px solid #cccccc;
+            border-radius: 5px;
+            min-height: 32px;
+        }
+        QLineEdit:focus { border: 2px solid #c0392b; }
+        QComboBox {
+            background-color: #ffffff;
+            color: #2c3e50;
+            padding: 6px 10px;
+            border: 1px solid #cccccc;
+            border-radius: 5px;
+            min-height: 32px;
+        }
+        QComboBox QAbstractItemView {
+            background-color: #ffffff;
+            color: #2c3e50;
+            selection-background-color: #fadbd8;
+        }
+        QTableWidget {
+            border: 1px solid #dddddd;
+            gridline-color: #f0f0f0;
+            background-color: #ffffff;
+            color: #2c3e50;
+        }
+        QTableWidget::item { color: #2c3e50; padding: 5px 8px; }
         QTableWidget::item:selected { background: #fadbd8; color: #2c3e50; }
+        QHeaderView::section {
+            background: #c0392b; color: #ffffff;
+            padding: 7px; font-weight: bold; border: none;
+        }
         QPushButton {
-            background: #c0392b; color: white;
-            border-radius: 6px; padding: 8px 14px; font-weight: bold;
+            background: #c0392b;
+            color: #ffffff;
+            border-radius: 6px;
+            padding: 8px 14px;
+            font-weight: bold;
+            min-height: 34px;
         }
         QPushButton:hover { background: #e74c3c; }
     )");

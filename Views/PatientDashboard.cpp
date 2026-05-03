@@ -1,66 +1,82 @@
-#include "PatientDashboard.h"
-#include "../Utilities/FileManager.h"
-#include "../Models/BloodRequest.h"
+#include "PatientDashboard.h"//include the header file for the PatientDashboard class
+#include "BloodRequestForm.h" //include the header file for the BloodRequestForm class
+#include "LandingPage.h"//include the header file for the LandingPage class
+#include "../Utilities/FileManager.h"//for FileManager::loadRequests() and FileManager::logActivity()
+#include "../Models/BloodRequest.h"//for BloodRequest class
+#include <QMessageBox>//for QMessageBox
+#include <QHeaderView>//for QHeaderView used in setting up the table
 
-#include <QHeaderView>
-#include <QMessageBox>
-
-// ============================================================
-// Constructor
-// ============================================================
 PatientDashboard::PatientDashboard(const QString& username, QWidget* parent)
     : QWidget(parent), currentUsername(username)
 {
-    setWindowTitle("Patient Dashboard");
-    setMinimumSize(600, 400);
+    setWindowTitle("Patient Dashboard - " + username);
+    setMinimumSize(680, 480);
 
-    // Title
-    lblTitle = new QLabel("Patient Dashboard - " + currentUsername, this);
+    lblTitle = new QLabel("🏥 Patient Dashboard — " + currentUsername, this);
     lblTitle->setAlignment(Qt::AlignCenter);
-    lblTitle->setStyleSheet("font-size: 18px; font-weight: bold;");
+    lblTitle->setStyleSheet("font-size: 18px; font-weight: bold; color: #2c3e50;");
 
-    // Table
+	//request table setup
     tblRequests = new QTableWidget(this);
     tblRequests->setColumnCount(6);
     tblRequests->setHorizontalHeaderLabels({
         "Request ID", "Blood Group", "Units", "Hospital", "Date", "Status"
         });
-
     tblRequests->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     tblRequests->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    tblRequests->setSelectionBehavior(QAbstractItemView::SelectRows);
+    tblRequests->setAlternatingRowColors(true);
 
-    // Buttons
-    btnNewRequest = new QPushButton("New Request", this);
-    btnRefresh = new QPushButton("Refresh", this);
+	//buttons setup
+    btnNewRequest = new QPushButton("➕ New Request", this);
+    btnRefresh = new QPushButton("🔄 Refresh", this);
+    btnLogout = new QPushButton("🚪 Logout", this);
 
-    // Layout
+    QHBoxLayout* btnRow = new QHBoxLayout();
+    btnRow->addWidget(btnNewRequest);
+    btnRow->addWidget(btnRefresh);
+    btnRow->addStretch();
+    btnRow->addWidget(btnLogout);
+
     QVBoxLayout* layout = new QVBoxLayout(this);
+    layout->setContentsMargins(30, 20, 30, 20);
+    layout->setSpacing(12);
     layout->addWidget(lblTitle);
     layout->addWidget(tblRequests);
-    layout->addWidget(btnNewRequest);
-    layout->addWidget(btnRefresh);
+    layout->addLayout(btnRow);
     setLayout(layout);
 
-    // Connections
+	//simple styling for a cleaner look
+    setStyleSheet(R"(
+        QWidget { background: #fff; font-family: Arial; font-size: 13px; }
+        QTableWidget { border: 1px solid #ddd; gridline-color: #f0f0f0; }
+        QHeaderView::section {
+            background: #c0392b; color: white; padding: 7px; font-weight: bold;
+        }
+        QTableWidget::item:selected { background: #fadbd8; color: #2c3e50; }
+        QPushButton {
+            background: #c0392b; color: white;
+            border-radius: 6px; padding: 9px 16px; font-size: 13px; font-weight: bold;
+        }
+        QPushButton:hover { background: #e74c3c; }
+    )");
+
+	// Connect buttons to their respective slots
     connect(btnNewRequest, &QPushButton::clicked, this, &PatientDashboard::onNewRequestClicked);
     connect(btnRefresh, &QPushButton::clicked, this, &PatientDashboard::onRefreshClicked);
+    connect(btnLogout, &QPushButton::clicked, this, &PatientDashboard::onLogout);
 
-    // Load data initially
     loadRequests();
 }
-
-// ============================================================
-// Load Requests for this patient
-// ============================================================
+//load the blood requests submitted by the logged-in patient and display them in the table
 void PatientDashboard::loadRequests()
 {
     tblRequests->setRowCount(0);
 
     QList<BloodRequest> requests = FileManager::loadRequests();
 
-    for (const BloodRequest& req : requests)
-    {
-        // Only show requests for this logged-in patient
+    for (const BloodRequest& req : requests) {
+        //only show requests submitted by THIS logged-in user
         if (req.getPatientName() != currentUsername)
             continue;
 
@@ -71,28 +87,50 @@ void PatientDashboard::loadRequests()
         tblRequests->setItem(row, 1, new QTableWidgetItem(req.getRequiredBloodGroup()));
         tblRequests->setItem(row, 2, new QTableWidgetItem(QString::number(req.getUnitsRequired())));
         tblRequests->setItem(row, 3, new QTableWidgetItem(req.getHospitalName()));
-
-        // ⚠️ IMPORTANT: adjust if your function name is different
         tblRequests->setItem(row, 4, new QTableWidgetItem(
-            req.getRequestDate().toString("yyyy-MM-dd")
-        ));
+            req.getRequestDate().toString("yyyy-MM-dd")));
 
-        tblRequests->setItem(row, 5, new QTableWidgetItem(req.getStatus()));
+        //colour-code the status cell
+        QTableWidgetItem* statusItem = new QTableWidgetItem(req.getStatus());
+        if (req.getStatus() == "Approved")
+            statusItem->setForeground(QColor("#27ae60"));
+        else if (req.getStatus() == "Rejected")
+            statusItem->setForeground(QColor("#e74c3c"));
+        else                                   
+            statusItem->setForeground(QColor("#e67e22"));
+        tblRequests->setItem(row, 5, statusItem);
+    }
+
+    if (tblRequests->rowCount() == 0)
+    {
+        //show a helpful placeholder row
+        tblRequests->insertRow(0);
+        QTableWidgetItem* placeholder = new QTableWidgetItem("No requests yet — click ➕ New Request to submit one.");
+        placeholder->setForeground(QColor("#aaa"));
+        tblRequests->setItem(0, 0, placeholder);
+        tblRequests->setSpan(0, 0, 1, 6);
     }
 }
+//slot for handling the "New Request" button click - opens the BloodRequestForm and connects its submission signal to refresh the table
+void PatientDashboard::onNewRequestClicked()
+{
+    BloodRequestForm* form = new BloodRequestForm(currentUsername);
+    form->setAttribute(Qt::WA_DeleteOnClose); // auto-delete when closed
+    form->show();
 
-// ============================================================
-// Button: Refresh
-// ============================================================
+    //when the form submits, automatically refresh this table
+    connect(form, &BloodRequestForm::requestSubmitted, this, &PatientDashboard::loadRequests);
+}
+
 void PatientDashboard::onRefreshClicked()
 {
     loadRequests();
 }
-
-// ============================================================
-// Button: New Request
-// ============================================================
-void PatientDashboard::onNewRequestClicked()
+//slot for handling the "Logout" button click - logs the activity, opens the LandingPage, and closes the dashboard
+void PatientDashboard::onLogout()
 {
-    QMessageBox::information(this, "New Request", "Open request form here.");
+    FileManager::logActivity("Patient logged out: " + currentUsername);
+    LandingPage* landing = new LandingPage();
+    landing->show();
+    this->close();
 }

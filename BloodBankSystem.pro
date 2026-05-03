@@ -38,7 +38,8 @@ SOURCES += \
     Views/DonorListForm.cpp \
     Views/InventoryDashboard.cpp \
     Views/RequestManagementForm.cpp \
-    Views/BloodRequestForm.cpp
+    Views/BloodRequestForm.cpp \
+    SplashPage.cpp
 
 # ---- Header Files (.h) ----
 HEADERS += \
@@ -60,8 +61,8 @@ HEADERS += \
     Views/DonorListForm.h \
     Views/InventoryDashboard.h \
     Views/RequestManagementForm.h \
-    Views/BloodRequestForm.h
-
+    Views/BloodRequestForm.h \
+       SplashPage.h
 # ---- Resources (QSS Style Files) ----
 # Files listed here get embedded into the executable
 # Access via: ":/Resources/style_light.qss"

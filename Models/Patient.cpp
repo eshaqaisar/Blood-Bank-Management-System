@@ -2,7 +2,7 @@
 #include <QStringList>
 #include <QDebug>
 
-// Constructor
+//constructor
 Patient::Patient(const QString& name, int age, const QString& contact, const QString& city,
     const QString& requiredBloodGroup, int unitsRequired,
     const QString& hospitalName, const QString& requestStatus)
@@ -14,7 +14,7 @@ Patient::Patient(const QString& name, int age, const QString& contact, const QSt
     this->requestStatus = requestStatus;
 }
 
-// Getters
+//getters
 QString Patient::getRequiredBloodGroup() const {
     return requiredBloodGroup;
 }
@@ -31,7 +31,7 @@ QString Patient::getRequestStatus() const {
     return requestStatus;
 }
 
-// Setters
+//setters
 void Patient::setRequiredBloodGroup(const QString& bg) {
     requiredBloodGroup = bg;
 }
@@ -48,7 +48,7 @@ void Patient::setRequestStatus(const QString& status) {
     requestStatus = status;
 }
 
-// display() → FIXED (no base call)
+//display() → FIXED (uses getters)
 void Patient::display() const {
     qDebug() << "Name:" << getName();
     qDebug() << "Age:" << getAge();
@@ -61,7 +61,7 @@ void Patient::display() const {
     qDebug() << "Status:" << requestStatus;
 }
 
-// toFileString() → FIXED (uses getters)
+//toFileString() → FIXED (uses getters)
 QString Patient::toFileString() const {
     return getName() + "," +
         QString::number(getAge()) + "," +
@@ -73,22 +73,22 @@ QString Patient::toFileString() const {
         requestStatus;
 }
 
-// fromFileString() → SAFE
+//fromFileString() → SAFE
 Patient Patient::fromFileString(const QString& line) {
     QStringList parts = line.split(",");
 
     if (parts.size() < 8) {
         return Patient("", 0, "", "", "", 0, "", "");
     }
-
+	//trim whitespace from each part to ensure clean data when loading from the file
     return Patient(
-        parts[0],
-        parts[1].toInt(),
-        parts[2],
-        parts[3],
-        parts[4],
-        parts[5].toInt(),
-        parts[6],
-        parts[7]
+		parts[0],//name
+		parts[1].toInt(),//age
+		parts[2],//contact
+		parts[3], //city
+		parts[4],//required blood group
+		parts[5].toInt(),//units required
+		parts[6],//hospital name
+		parts[7]//request status
     );
 }

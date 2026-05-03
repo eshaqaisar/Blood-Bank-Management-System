@@ -1,7 +1,7 @@
 #ifndef PERSON_H
 #define PERSON_H
 
-#include <QString>
+#include <QString>//for storing and manipulating string data such as name, contact information, and city
 
 class Person {
 private:
@@ -14,22 +14,22 @@ public:
     Person(const QString& name, int age, const QString& contact, const QString& city);
     virtual ~Person();
 
-    // Getters
+    //getters
     QString getName()    const;
     int     getAge()     const;
     QString getContact() const;
     QString getCity()    const;
 
-    // Setters
+    //setters
     void setName(const QString& name);
     void setAge(int age);
     void setContact(const QString& contact);
     void setCity(const QString& city);
 
-    // Pure virtual
+    //pure virtual
     virtual void display() const = 0;
 
-    // Virtual
+    //virtual
     virtual QString toFileString() const;
 };
 

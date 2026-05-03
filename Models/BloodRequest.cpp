@@ -1,11 +1,7 @@
-#include "BloodRequest.h"
-#include <QFile> 
-#include <QTextStream>
-
-
-
-
-// Constructor
+#include "BloodRequest.h"//header file for the BloodRequest class, which defines the data structure and operations for blood requests, including serialization to and from file strings, and saving to a file
+#include <QFile> //for reading and writing request data from/to the file
+#include <QTextStream>//for parsing request data from the file and writing approval certificates
+//constructor
 
 BloodRequest::BloodRequest(const QString& requestID,
                            const QString& patientName,
@@ -17,12 +13,12 @@ BloodRequest::BloodRequest(const QString& requestID,
     hospitalName(hospitalName),
     bloodGroup(bloodGroup),
     units(units),
-    status("Pending"),          // FIX: was never initialized → undefined status
+    status("Pending"),          //FIX: was never initialized → undefined status
     requestDate(QDate::currentDate())
 {
 }
 
-// Serialize: requestID,patientName,hospitalName,bloodGroup,units,status,date
+//serialize: requestID,patientName,hospitalName,bloodGroup,units,status,date
 QString BloodRequest::toFileString() const {
     return requestID + "," +
         patientName + "," +
@@ -40,7 +36,8 @@ BloodRequest BloodRequest::fromFileString(const QString& line) {
     BloodRequest req(p[0].trimmed(), p[1].trimmed(),
         p[2].trimmed(), p[3].trimmed(),
         p[4].trimmed().toInt());
-    if (p.size() >= 6) {
+    if (p.size() >= 6)
+    {
         QString s = p[5].trimmed();
         if (s == "Approved") req.approve();
         else if (s == "Rejected") req.reject();
@@ -54,7 +51,8 @@ BloodRequest BloodRequest::fromFileString(const QString& line) {
 
 void BloodRequest::saveToFile() {
     QFile file("Database/requests.txt");
-    if (file.open(QIODevice::Append | QIODevice::Text)) {
+    if (file.open(QIODevice::Append | QIODevice::Text))
+    {
         QTextStream out(&file);
         out << toFileString() << "\n";
         file.close();
