@@ -1,16 +1,15 @@
-#include "InventoryDashboard.h"
-#include "../Utilities/FileManager.h"
-#include "../Models/BloodBag.h"
-#include <QProgressBar>
-#include <QFileDialog>
-#include <QMessageBox>
-#include <QHeaderView>
-#include <QTableWidgetItem>
-#include <QAbstractItemView>
-#include <QFont>
-#include <QColor>
+#include "InventoryDashboard.h"//header file for InventoryDashboard class
+#include "../Utilities/FileManager.h"//header file for FileManager class
+#include "../Models/BloodBag.h"//header file for BloodBag class
+#include <QProgressBar>//for stock level bars
+#include <QFileDialog>//for export dialog
+#include <QMessageBox>//for info popups
+#include <QHeaderView>//for table header styling
+#include <QTableWidgetItem>//for table items
+#include <QAbstractItemView>//for disabling table editing
+#include <QFont>//for custom fonts
+#include <QColor>//for custom colors
 
-// InventoryDashboard.cpp  |  Domain 2: Zara Shah
 
 InventoryDashboard::InventoryDashboard(QWidget* parent) : QWidget(parent) {
     setupUI();
@@ -78,11 +77,11 @@ void InventoryDashboard::loadInventory() {
 
         QTableWidgetItem* bgItem = new QTableWidgetItem(bg);
         bgItem->setFont(QFont("Arial", 12, QFont::Bold));
-        bgItem->setForeground(QColor("#2c3e50")); // ✅ explicit text color
+        bgItem->setForeground(QColor("#2c3e50")); 
         tblInventory->setItem(row, 0, bgItem);
 
         QTableWidgetItem* unitItem = new QTableWidgetItem(QString::number(units) + " units");
-        unitItem->setForeground(QColor("#2c3e50")); // ✅ explicit
+        unitItem->setForeground(QColor("#2c3e50")); 
         tblInventory->setItem(row, 1, unitItem);
 
         QProgressBar* bar = new QProgressBar();
@@ -142,9 +141,7 @@ void InventoryDashboard::onExportInventoryCSV() {
 }
 
 void InventoryDashboard::applyStyle() {
-    // ✅ FIX: explicit color:#2c3e50 on QWidget and all sub-elements
-    //         QTableWidget::item gets color too — no white-on-white on any resize
-    //         Kept the purple accent (8e44ad) for Inventory's unique identity
+    
     setStyleSheet(R"(
         QWidget {
             background-color: #fdfdfd;

@@ -1,26 +1,31 @@
-#include "DonorRegistrationForm.h"
-#include "../Utilities/FileManager.h"
-#include "../Models/Donor.h"
-#include "../Models/BloodBag.h"
-#include <QMessageBox>
+#include "DonorRegistrationForm.h"//header file for this class
+#include "../Utilities/FileManager.h"//for saving/loading donors and inventory
+#include "../Models/Donor.h"//for creating new donor objects
+#include "../Models/BloodBag.h"//for creating new blood bag entries
+#include <QMessageBox>//for showing success/error messages
+#include <QScrollArea>//for making the form scrollable on smaller screens
 
-// DonorRegistrationForm.cpp  |  Domain 1: Muhammad Ali
 
-DonorRegistrationForm::DonorRegistrationForm(QWidget* parent) : QWidget(parent) {
+DonorRegistrationForm::DonorRegistrationForm(QWidget* parent) : QWidget(parent)
+{
     setupUI();
     applyStyle();
 }
-DonorRegistrationForm::~DonorRegistrationForm() {}
 
-void DonorRegistrationForm::setupUI() {
+DonorRegistrationForm::~DonorRegistrationForm() {}
+//sets up the user interface components and layout for the donor registration form
+void DonorRegistrationForm::setupUI()
+{
     setWindowTitle("Add New Donor");
     setMinimumWidth(420);
+    resize(460, 540);
 
+   
     txtName = new QLineEdit(this); txtName->setPlaceholderText("Full Name");
-    txtAge = new QLineEdit(this); txtAge->setPlaceholderText("Age (must be 18+)");
+    txtAge = new QLineEdit(this); txtAge->setPlaceholderText("Age (18+)");
     txtContact = new QLineEdit(this); txtContact->setPlaceholderText("Phone Number");
     txtCity = new QLineEdit(this); txtCity->setPlaceholderText("City");
-    txtWeight = new QLineEdit(this); txtWeight->setPlaceholderText("Weight in kg (must be 50+)");
+    txtWeight = new QLineEdit(this); txtWeight->setPlaceholderText("Weight in kg (50+)");
     txtUnits = new QLineEdit(this); txtUnits->setPlaceholderText("Units donating today (e.g. 1)");
 
     cmbBloodGroup = new QComboBox(this);
@@ -29,38 +34,70 @@ void DonorRegistrationForm::setupUI() {
     lblStatus = new QLabel("", this);
     lblStatus->setAlignment(Qt::AlignCenter);
     lblStatus->setObjectName("lblStatus");
+    lblStatus->setWordWrap(true);
 
     btnAdd = new QPushButton("✅  Add Donor", this);
     btnClear = new QPushButton("🗑️  Clear Fields", this);
+    btnClear->setObjectName("btnSecondary");
 
     connect(btnAdd, &QPushButton::clicked, this, &DonorRegistrationForm::onAddDonorClicked);
     connect(btnClear, &QPushButton::clicked, this, &DonorRegistrationForm::onClearClicked);
 
-    QFormLayout* form = new QFormLayout();
-    form->setSpacing(10);
-    form->addRow("Name:", txtName);
-    form->addRow("Age:", txtAge);
-    form->addRow("Contact:", txtContact);
-    form->addRow("City:", txtCity);
-    form->addRow("Blood Group:", cmbBloodGroup);
-    form->addRow("Weight (kg):", txtWeight);
-    form->addRow("Units Today:", txtUnits);
+    
+    QWidget* formWidget = new QWidget();
+    QVBoxLayout* formLayout = new QVBoxLayout(formWidget);
+    formLayout->setContentsMargins(36, 28, 36, 28);
+    formLayout->setSpacing(4);
+
+    auto addField = [&](const QString& labelText, QWidget* field) {
+        QLabel* lbl = new QLabel(labelText, formWidget);
+        lbl->setObjectName("fieldLabel");
+        formLayout->addWidget(lbl);
+        formLayout->addSpacing(2);
+        formLayout->addWidget(field);
+        formLayout->addSpacing(12);
+        };
+
+    QLabel* title = new QLabel("👤 Register New Donor", formWidget);
+    title->setObjectName("lblTitle");
+    title->setAlignment(Qt::AlignCenter);
+    formLayout->addWidget(title);
+    formLayout->addSpacing(18);
+
+    addField("Name:", txtName);
+    addField("Age:", txtAge);
+    addField("Contact:", txtContact);
+    addField("City:", txtCity);
+    addField("Blood Group:", cmbBloodGroup);
+    addField("Weight (kg):", txtWeight);
+    addField("Units Today:", txtUnits);
+
+    formLayout->addWidget(lblStatus);
+    formLayout->addSpacing(12);
 
     QHBoxLayout* btnRow = new QHBoxLayout();
+    btnRow->setSpacing(10);
     btnRow->addWidget(btnAdd);
     btnRow->addWidget(btnClear);
+    formLayout->addLayout(btnRow);
+    formLayout->addSpacing(10);
 
-    QVBoxLayout* layout = new QVBoxLayout(this);
-    layout->setContentsMargins(30, 25, 30, 25);
-    layout->setSpacing(12);
-    layout->addWidget(new QLabel("👤 Register New Donor", this));
-    layout->addLayout(form);
-    layout->addWidget(lblStatus);
-    layout->addLayout(btnRow);
-    setLayout(layout);
+   
+    QScrollArea* scroll = new QScrollArea(this);
+    scroll->setWidget(formWidget);
+    scroll->setWidgetResizable(true);
+    scroll->setFrameShape(QFrame::NoFrame);
+    scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+
+    QVBoxLayout* root = new QVBoxLayout(this);
+    root->setContentsMargins(0, 0, 0, 0);
+    root->addWidget(scroll);
+    setLayout(root);
 }
-
-void DonorRegistrationForm::onAddDonorClicked() {
+//handles the logic when the "Add Donor" button is clicked, including validation, saving data, and updating inventory
+void DonorRegistrationForm::onAddDonorClicked()
+{
     lblStatus->setText("");
 
     QString name = txtName->text().trimmed();
@@ -68,21 +105,21 @@ void DonorRegistrationForm::onAddDonorClicked() {
     double  weight = txtWeight->text().toDouble();
     int     units = txtUnits->text().toInt();
 
-    if (name.isEmpty() || txtContact->text().isEmpty()) {
+    if (name.isEmpty() || txtContact->text().trimmed().isEmpty()) {
         lblStatus->setText("❌ Name and Contact are required.");
-        lblStatus->setStyleSheet("color: #e74c3c;"); return;
+        lblStatus->setStyleSheet("color:#e74c3c;"); return;
     }
     if (age < 18) {
         lblStatus->setText("❌ Donor must be at least 18 years old.");
-        lblStatus->setStyleSheet("color: #e74c3c;"); return;
+        lblStatus->setStyleSheet("color:#e74c3c;"); return;
     }
     if (weight < 50.0) {
         lblStatus->setText("❌ Donor must weigh at least 50 kg.");
-        lblStatus->setStyleSheet("color: #e74c3c;"); return;
+        lblStatus->setStyleSheet("color:#e74c3c;"); return;
     }
     if (units < 1) {
         lblStatus->setText("❌ Enter a valid number of units (minimum 1).");
-        lblStatus->setStyleSheet("color: #e74c3c;"); return;
+        lblStatus->setStyleSheet("color:#e74c3c;"); return;
     }
 
     Donor newDonor(
@@ -101,69 +138,75 @@ void DonorRegistrationForm::onAddDonorClicked() {
     inventory.addBag(bag);
     inventory.save(FileManager::INVENTORY_FILE);
 
-    lblStatus->setText("✅ Donor " + name + " added and " +
+    lblStatus->setText("✅ Donor " + name + " added — " +
         QString::number(units) + " unit(s) added to inventory.");
-    lblStatus->setStyleSheet("color: #27ae60;");
+    lblStatus->setStyleSheet("color:#27ae60;");
     clearFields();
+    QMessageBox::information(this, "Success",
+        "Donor registered and inventory updated successfully.");
 }
 
-void DonorRegistrationForm::clearFields() {
+void DonorRegistrationForm::clearFields()
+{
     txtName->clear(); txtAge->clear(); txtContact->clear();
     txtCity->clear(); txtWeight->clear(); txtUnits->clear();
     cmbBloodGroup->setCurrentIndex(0);
+    lblStatus->setText("");
 }
 
 void DonorRegistrationForm::onClearClicked() { clearFields(); }
-
-void DonorRegistrationForm::applyStyle() {
-    // ✅ FIX: explicit color:#2c3e50 everywhere — no white-on-white
-    //         min-height on all inputs
+//applies a custom stylesheet to the form and its components to create a modern and visually appealing design
+void DonorRegistrationForm::applyStyle()
+{
     setStyleSheet(R"(
-        QWidget {
-            background-color: #ffffff;
-            color: #2c3e50;
-            font-family: Arial;
-            font-size: 13px;
+        QWidget      { background-color:#ffffff; color:#2c3e50;
+                       font-family:Arial; font-size:13px; }
+        QScrollArea  { background:#ffffff; border:none; }
+        QScrollBar:vertical {
+            background:#f0f0f0; width:8px; border-radius:4px;
         }
-        QLabel {
-            color: #2c3e50;
-            background: transparent;
-            font-weight: bold;
-            font-size: 13px;
+        QScrollBar::handle:vertical {
+            background:#bdc3c7; border-radius:4px; min-height:20px;
         }
-        #lblStatus { font-size: 12px; font-weight: bold; }
+        QScrollBar::handle:vertical:hover { background:#c0392b; }
+        QScrollBar::add-line:vertical,
+        QScrollBar::sub-line:vertical { height:0; }
+
+        QLabel        { color:#2c3e50; background:transparent; }
+        #fieldLabel   { font-size:13px; font-weight:600; color:#2c3e50; margin-top:4px; }
+        #lblTitle     { font-size:18px; font-weight:bold; color:#c0392b; }
+        #lblStatus    { font-size:12px; font-weight:bold; }
+
         QLineEdit {
-            background-color: #ffffff;
-            color: #2c3e50;
-            padding: 8px 12px;
-            border: 1px solid #bdc3c7;
-            border-radius: 5px;
-            font-size: 13px;
-            min-height: 34px;
+            background-color:#ffffff; color:#2c3e50;
+            padding:9px 12px; border:1px solid #bdc3c7;
+            border-radius:7px; font-size:13px; min-height:36px;
         }
-        QLineEdit:focus { border: 2px solid #c0392b; background: #fff9f9; }
+        QLineEdit:focus { border:2px solid #c0392b; background:#fff9f9; }
+
         QComboBox {
-            background-color: #ffffff;
-            color: #2c3e50;
-            padding: 7px 10px;
-            border: 1px solid #bdc3c7;
-            border-radius: 5px;
-            min-height: 34px;
+            background-color:#ffffff; color:#2c3e50;
+            padding:8px 12px; border:1px solid #bdc3c7;
+            border-radius:7px; font-size:13px; min-height:36px;
         }
+        QComboBox:focus { border:2px solid #c0392b; }
         QComboBox QAbstractItemView {
-            background-color: #ffffff;
-            color: #2c3e50;
-            selection-background-color: #fadbd8;
+            background:#ffffff; color:#2c3e50;
+            selection-background-color:#fadbd8;
         }
+
         QPushButton {
-            background-color: #c0392b;
-            color: #ffffff;
-            border-radius: 6px;
-            padding: 9px;
-            font-size: 13px;
-            font-weight: bold;
-            min-height: 36px;
+            background-color:#c0392b; color:#ffffff;
+            border-radius:8px; padding:11px;
+            font-size:13px; font-weight:bold; min-height:38px; border:none;
         }
-        QPushButton:hover { background-color: #e74c3c; }
+        QPushButton:hover   { background-color:#e74c3c; }
+        QPushButton:pressed { background-color:#a93226; }
+
+        #btnSecondary {
+            background-color:#ecf0f1; color:#2c3e50;
+            border:1px solid #bdc3c7; border-radius:8px; font-weight:normal;
+        }
+        #btnSecondary:hover { background-color:#dfe6e9; }
     )");
 }

@@ -1,12 +1,12 @@
-#include "DonorDashboard.h"
-#include "LandingPage.h"
-#include "../Utilities/FileManager.h"
-#include "../Models/Donor.h"
-#include <QTableWidgetItem>
-#include <QHeaderView>
-#include <QAbstractItemView>
-#include <QColor>
-#include <QFont>
+#include "DonorDashboard.h"//header file for the donor dashboard view
+#include "LandingPage.h" //header file for the landing page view
+#include "../Utilities/FileManager.h"//header file for file management utilities
+#include "../Models/Donor.h"//header file for the Donor model
+#include <QTableWidgetItem>//header file for table widget items
+#include <QHeaderView>//header file for table header view
+#include <QAbstractItemView>//header file for abstract item view (for setting edit triggers)
+#include <QColor>//header file for color definitions
+#include <QFont>//header file for font definitions
 
 DonorDashboard::DonorDashboard(const QString& donorUsername, QWidget* parent)
     : QWidget(parent), donorUsername(donorUsername)
@@ -16,7 +16,7 @@ DonorDashboard::DonorDashboard(const QString& donorUsername, QWidget* parent)
     applyStyle();
 }
 DonorDashboard::~DonorDashboard() {}
-
+//initializes the UI components and layout for the donor dashboard
 void DonorDashboard::setupUI() {
     setWindowTitle("Donor Dashboard");
     setMinimumSize(600, 500);
@@ -87,9 +87,7 @@ void DonorDashboard::onLogout() {
 }
 
 void DonorDashboard::applyStyle() {
-    // ✅ FIX: color:#2c3e50 on QWidget and QLabel — prevents white-on-white
-    //         QTableWidget gets explicit text color too
-    //         min-height on button for touch-friendliness
+	//apply a clean and modern style to the donor dashboard using Qt's stylesheet
     setStyleSheet(R"(
         QWidget {
             background-color: #ffffff;

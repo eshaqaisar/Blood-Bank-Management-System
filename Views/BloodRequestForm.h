@@ -29,6 +29,8 @@ private:
     QPushButton* btnSubmit;
     QPushButton* btnCancel;
 
+    void applyStyle();
+
 public:
     //constructor now takes the logged-in username
     explicit BloodRequestForm(const QString& username, QWidget* parent = nullptr);

@@ -1,12 +1,12 @@
 #ifndef SPLASHPAGE_H
 #define SPLASHPAGE_H
 
-#include <QWidget>
-#include <QPushButton>
-#include <QLabel>
-#include <QVBoxLayout>
-#include <QPainter>
-#include <QPaintEvent>
+#include <QWidget>//for basic widget functionality
+#include <QPushButton>//for the "Get Started" button
+#include <QLabel>//for the title label
+#include <QVBoxLayout>//for arranging the label and button vertically
+#include <QPainter>//for custom painting the background image
+#include <QPaintEvent>//for handling paint events
 
 class SplashPage : public QWidget
 {

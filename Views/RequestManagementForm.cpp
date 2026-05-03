@@ -1,14 +1,14 @@
-#include "RequestManagementForm.h"//include the header file for the RequestManagementForm class
-#include "../Utilities/FileManager.h"//for FileManager::loadRequests() and FileManager::updateRequestStatus()
-#include "../Models/BloodRequest.h"//for BloodRequest class
-#include "../Models/BloodBag.h"//for BloodBag class
-#include <QHeaderView>//for QHeaderView used in setting up the table
-#include <QMessageBox>//for QMessageBox
-#include <QDateTime>//for QDateTime used in certificate generation
-#include <QFile>//for QFile used in certificate generation
-#include <QTextStream>//for QTextStream used in certificate generation
-#include <QDir>//for QDir::mkpath() used in certificate generation
-#include <QColor>//for QColor used in status coloring
+#include "RequestManagementForm.h"//for the class definition
+#include "../Utilities/FileManager.h"//for FileManager to load/update requests and inventory
+#include "../Models/BloodRequest.h"//for BloodRequest model to represent each request
+#include "../Models/BloodBag.h"//for BloodBag model to represent inventory items
+#include <QHeaderView>//for QHeaderView to adjust table column sizes
+#include <QMessageBox>//for QMessageBox to show dialogs
+#include <QDateTime>//for QDateTime to timestamp certificates
+#include <QFile>//for QFile to read/write files
+#include <QTextStream>//for QTextStream to write certificate content
+#include <QDir>//for QDir to create directories if needed
+#include <QColor>//for QColor to style table items
 
 RequestManagementForm::RequestManagementForm(QWidget* parent)
     : QWidget(parent)
@@ -16,12 +16,12 @@ RequestManagementForm::RequestManagementForm(QWidget* parent)
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(15, 15, 15, 15);
     mainLayout->setSpacing(10);
-
+	//add a title label with an emoji for visual appeal
     QLabel* title = new QLabel("📋 Blood Request Management", this);
     title->setAlignment(Qt::AlignCenter);
     title->setStyleSheet("font-size: 16px; font-weight: bold; color: #2c3e50;");
 
-	//request table setup
+	//set up the table to display requests with appropriate columns and styling
     requestsTable = new QTableWidget(this);
     requestsTable->setColumnCount(6);
     requestsTable->setHorizontalHeaderLabels(
@@ -30,15 +30,15 @@ RequestManagementForm::RequestManagementForm(QWidget* parent)
     requestsTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     requestsTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     requestsTable->setAlternatingRowColors(true);
-	//buttons setup
+	//add buttons with emojis and consistent styling
     approveBtn = new QPushButton("✅ Approve", this);
     rejectBtn = new QPushButton("❌ Reject", this);
     refreshBtn = new QPushButton("🔄 Refresh", this);
-	//simple styling for a cleaner look
+	//style buttons with colors and padding for better UX
     approveBtn->setStyleSheet("background:#27ae60; color:white; border-radius:5px; padding:8px; font-weight:bold;");
     rejectBtn->setStyleSheet("background:#e74c3c; color:white; border-radius:5px; padding:8px; font-weight:bold;");
     refreshBtn->setStyleSheet("background:#2980b9; color:white; border-radius:5px; padding:8px; font-weight:bold;");
-	//arrange buttons in a horizontal layout
+	//arrange buttons in a horizontal layout with spacing
     QHBoxLayout* btnLayout = new QHBoxLayout();
     btnLayout->addWidget(approveBtn);
     btnLayout->addWidget(rejectBtn);
@@ -49,7 +49,7 @@ RequestManagementForm::RequestManagementForm(QWidget* parent)
     mainLayout->addWidget(requestsTable);
     mainLayout->addLayout(btnLayout);
     setLayout(mainLayout);
-	//connect buttons to their respective slots
+	//connect button signals to their respective slots
     connect(approveBtn, &QPushButton::clicked, this, &RequestManagementForm::onApproveClicked);
     connect(rejectBtn, &QPushButton::clicked, this, &RequestManagementForm::onRejectClicked);
     connect(refreshBtn, &QPushButton::clicked, this, &RequestManagementForm::onRefreshClicked);
@@ -58,17 +58,17 @@ RequestManagementForm::RequestManagementForm(QWidget* parent)
 }
 
 RequestManagementForm::~RequestManagementForm() {}
-//fetch all pending blood requests from the file and display them in the table
+//load requests from the file and populate the table, only showing pending requests for admin action
 void RequestManagementForm::loadRequests()
 {
     requestsTable->setRowCount(0);
     requestIds.clear();
 
-	
+    
     QList<BloodRequest> requests = FileManager::loadRequests();
 
     for (const BloodRequest& req : requests) {
-		//only show requests that are still pending approval
+		//shows only pending requests in the table, approved/rejected ones are hidden since they can't be acted on anymore
         if (req.getStatus() != "Pending") continue;
 
         int row = requestsTable->rowCount();
@@ -84,11 +84,11 @@ void RequestManagementForm::loadRequests()
         statusItem->setForeground(QColor("#e67e22")); // Orange = Pending
         requestsTable->setItem(row, 5, statusItem);
 
-		// Keep track of the request IDs in the same order as they appear in the table
+		//keep track of request IDs in the same order as they appear in the table for later reference when approving/rejecting
         requestIds.append(req.getRequestId());
     }
 
-    if (requestsTable->rowCount() == 0) 
+    if (requestsTable->rowCount() == 0)
     {
         requestsTable->insertRow(0);
         QTableWidgetItem* ph = new QTableWidgetItem("No pending requests.");
@@ -97,12 +97,11 @@ void RequestManagementForm::loadRequests()
         requestsTable->setSpan(0, 0, 1, 6);
     }
 }
-
+//approve the selected request, update inventory, and generate a certificate
 void RequestManagementForm::onApproveClicked()
 {
     int row = requestsTable->currentRow();
-	if (row < 0 || row >= requestIds.size()) // Check if a valid row is selected
-    {
+    if (row < 0 || row >= requestIds.size()) {
         QMessageBox::warning(this, "No Selection", "Please select a request first.");
         return;
     }
@@ -113,13 +112,13 @@ void RequestManagementForm::onApproveClicked()
     QString bloodGroup = requestsTable->item(row, 3)->text();
     int     units = requestsTable->item(row, 4)->text().toInt();
 
-    //ctually persist the status change to the file
+    //actually persist the status change to the file
     FileManager::updateRequestStatus(reqId, "Approved");
 
-    //decrement inventory
+    //decrement inventory (previously updateInventory() was empty)
     updateInventory(bloodGroup, units);
 
-	//generate a simple text certificate for the approved request
+    //certificate saved to "Database/" not "../Database/"
     QDir().mkpath("Database");
     QString certPath = "Database/certificate_" + reqId + ".txt";
     QFile cert(certPath);
@@ -139,13 +138,13 @@ void RequestManagementForm::onApproveClicked()
 
     QMessageBox::information(this, "Approved",
         "Request " + reqId + " approved.\nInventory updated.\nCertificate saved.");
-    loadRequests(); // Refresh — approved row disappears from Pending list
+    loadRequests(); //refresh , approved row disappears from Pending list
 }
-//handle rejection of a blood request
+//approve the selected request, update inventory, and generate a certificate
 void RequestManagementForm::onRejectClicked()
 {
     int row = requestsTable->currentRow();
-    if (row < 0 || row >= requestIds.size())
+    if (row < 0 || row >= requestIds.size()) 
     {
         QMessageBox::warning(this, "No Selection", "Please select a request first.");
         return;
@@ -153,7 +152,7 @@ void RequestManagementForm::onRejectClicked()
 
     QString reqId = requestIds[row];
 
-    //actually persist the rejection to the file
+    //persist the rejection to the file
     FileManager::updateRequestStatus(reqId, "Rejected");
 
     QMessageBox::information(this, "Rejected", "Request " + reqId + " has been rejected.");
@@ -164,19 +163,18 @@ void RequestManagementForm::onRefreshClicked()
 {
     loadRequests();
 }
-//helper function to update the blood inventory when a request is approved
+
+
 void RequestManagementForm::updateInventory(const QString& bloodGroup, int units)
 {
     BloodInventory inventory;
     inventory.load(FileManager::INVENTORY_FILE);
 
     bool ok = inventory.useBag(bloodGroup, units);
-    if (ok) 
-    {
+    if (ok) {
         inventory.save(FileManager::INVENTORY_FILE);
     }
-    else 
-    {
+    else {
         QMessageBox::warning(this, "Inventory Warning",
             "Not enough " + bloodGroup + " stock to fulfil this request.\n"
             "Request approved but inventory not decremented — please restock.");

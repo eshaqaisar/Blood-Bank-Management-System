@@ -1,16 +1,16 @@
-#include "DonorListForm.h"
-#include "DonorRegistrationForm.h"
-#include "../Utilities/FileManager.h"
-#include "../Utilities/Compatibility.h"
-#include "../Models/Donor.h"
-#include <QMessageBox>
-#include <QHeaderView>
-#include <QTableWidgetItem>
-#include <QAbstractItemView>
-#include <QColor>
-#include <QFont>
+#include "DonorListForm.h"//forward declaration of DonorListForm class
+#include "DonorRegistrationForm.h"//forward declaration of DonorRegistrationForm class
+#include "../Utilities/FileManager.h"//forward declaration of FileManager class
+#include "../Utilities/Compatibility.h"//forward declaration of CompatibilityChecker class
+#include "../Models/Donor.h"//forward declaration of Donor class
+#include <QMessageBox>//for showing message boxes
+#include <QHeaderView>//for customizing table headers
+#include <QTableWidgetItem>//for working with table items
+#include <QAbstractItemView>//for setting selection behavior of the table
+#include <QColor>//for setting text colors
+#include <QFont>//for setting font styles
 
-// DonorListForm.cpp  |  Domain 1: Muhammad Ali
+
 
 DonorListForm::DonorListForm(QWidget* parent) : QWidget(parent) {
     setupUI();
@@ -157,8 +157,7 @@ void DonorListForm::onAddDonorClicked() {
 }
 
 void DonorListForm::applyStyle() {
-    // ✅ FIX: explicit color:#2c3e50 on QWidget, QLabel, QTableWidget::item
-    //         min-height on inputs so they stay usable when window shrinks
+	//set a modern and clean style for the donor list form using Qt's stylesheet
     setStyleSheet(R"(
         QWidget {
             background-color: #fdfdfd;

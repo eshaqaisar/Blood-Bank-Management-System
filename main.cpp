@@ -1,17 +1,17 @@
-#include <QApplication>
-#include <QDir>
-#include <QCoreApplication>
-#include <QFile>
-#include <QMessageBox>
-#include "Views/LandingPage.h"
-#include "SplashPage.h"
+#include <QApplication>//provides the application framework and event loop
+#include <QDir>//for setting the working directory to the executable's location
+#include <QCoreApplication>//to get the executable's directory path
+#include <QFile>//for loading the .qss stylesheet
+#include <QMessageBox>//to show an error if the working directory cannot be set
+#include "Views/LandingPage.h"//the main landing page after the splash screen
+#include "SplashPage.h"//the initial splash screen shown while loading resources
 
-int main(int argc, char* argv[])
+int main(int argc, char* argv[])//entry point of the application
 {
     QApplication app(argc, argv);
     app.setApplicationName("BloodBankSystem");
 
-  
+	//set the working directory to the executable's location, ensuring relative paths work correctly
     QString exeDir = QCoreApplication::applicationDirPath();
     if (!QDir::setCurrent(exeDir)) {
         QMessageBox::critical(nullptr, "Startup Error",
@@ -30,7 +30,7 @@ int main(int argc, char* argv[])
         qss.close();
     }
     else {
-        // Inline fallback ,guarantees readable colors even if .qss is missing
+        //inline fallback ,guarantees readable colors even if .qss is missing
         app.setStyleSheet(
             "QWidget    { background-color:#f5f5f5; color:#2c3e50;"
             "             font-family:Arial; font-size:13px; }"
@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
             "             padding:8px; font-weight:bold; border:none; }"
         );
     }
-
+	//show the splash screen while loading resources, then transition to the landing page
     SplashPage splash;
     splash.show();
 
