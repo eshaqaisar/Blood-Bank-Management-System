@@ -1,38 +1,19 @@
-#ifndef ADMINDASHBOARD_H
+#ifndef ADMINDASHBOARD_H // Include guard to prevent multiple definitions
 #define ADMINDASHBOARD_H
 
-#include <QWidget>
-#include <QStackedWidget>
-#include <QPushButton>
-#include <QLabel>
-#include <QHBoxLayout>
-#include <QVBoxLayout>
-#include <QTimer>
+#include <QWidget>//base class for all UI elements in Qt
+#include <QStackedWidget>//for managing multiple pages in the dashboard
+#include <QPushButton>//for clickable buttons in the navigation and actions
+#include <QLabel>//for displaying text such as welcome message and alerts
+#include <QHBoxLayout>//for horizontal layout of the top bar and main content area
+#include <QVBoxLayout>//for vertical layout of the sidebar and overall dashboard
+#include <QTimer>//for periodic updates, such as refreshing inventory status
 
-// AdminDashboard.h 
-// Part: Esha Qaisar
-// The Admin's central hub. Uses QStackedWidget to switch
-// between sub-screens without opening new windows.
-// Embedded screens (pages in the stacked widget):
-//   Page 0: Donor List / Search
-//   Page 1: Inventory Dashboard
-//   Page 2: Request Management
-//
-// Advanced Features:
-//   - Dark Mode / Light Mode Toggle (swaps QSS stylesheet)
-//   - One-Click CSV Export button
-//   - Emergency Alert label (updated by InventoryDashboard)
-//
-// Qt Concepts:
-//   QStackedWidget: holds multiple "pages", shows one at a time.
-//   setCurrentIndex(n) switches to page n.
-
-
-// Forward declarations
+//forward declarations
 class DonorListForm;
 class InventoryDashboard;
 class RequestManagementForm;
-
+//admin dashboard class that provides an interface for managing donors, inventory, and requests in the blood bank system. It includes navigation buttons, a welcome message, and an alert for low stock situations. It also has a dark mode toggle and CSV export functionality for the donor list.
 class AdminDashboard : public QWidget 
 {
     Q_OBJECT
@@ -42,22 +23,21 @@ public:
     ~AdminDashboard();
 
 private slots:
-    void showDonorList();         // Switch to page 0
-    void showInventory();         // Switch to page 1
-    void showRequestManagement(); // Switch to page 2
-    void toggleDarkMode();        // Swap between dark/light QSS
-    void exportCSV();             // Export donors to CSV file
-    void onLogout();              // Return to LandingPage
+    void showDonorList();         //switch to page 0
+    void showInventory();         //switch to page 1
+    void showRequestManagement(); //switch to page 2
+    void toggleDarkMode();        //swap between dark/light QSS
+    void exportCSV();             //export donors to CSV file
+    void onLogout();              //return to LandingPage
 
 private:
     QString adminUsername;
-    bool    isDarkMode = false;   // Tracks current theme
+    bool    isDarkMode = false;   //tracks current theme
 
-    //  Layout structure 
-    // Left: navigation panel | Right: QStackedWidget content area
+	//ui elements
     QStackedWidget* stackedWidget; // The content area
 
-    // Navigation Buttons (left sidebar)
+	//sidebar buttons for navigation and actions
     QPushButton* btnDonors;
     QPushButton* btnInventory;
     QPushButton* btnRequests;
@@ -65,15 +45,15 @@ private:
     QPushButton* btnExportCSV;
     QPushButton* btnLogout;
 
-    //  Top bar 
+	//labels for welcome message and low stock alert 
     QLabel* lblWelcome;
-    QLabel* lblAlert;   // Shows emergency low stock warning
+	QLabel* lblAlert;   //dynamic alert for low stock situations
 
-    // Pages inside QStackedWidget 
+	//pages for different sections of the dashboard 
     DonorListForm* donorListPage;
     InventoryDashboard* inventoryPage;
     RequestManagementForm* requestsPage;
-
+	//helper functions to set up the UI and apply themes
     void setupUI();
     void applyLightMode();
     void applyDarkMode();
