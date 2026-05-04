@@ -1,11 +1,11 @@
 #include "Patient.h"
-#include <QStringList>
-#include <QDebug>
+#include <string>//for std::string, std::stoi, std::to_string
+#include <QDebug>//used only at Qt boundary for debug output; convert std::string→QString there
 
 //constructor
-Patient::Patient(const QString& name, int age, const QString& contact, const QString& city,
-    const QString& requiredBloodGroup, int unitsRequired,
-    const QString& hospitalName, const QString& requestStatus)
+Patient::Patient(const std::string& name, int age, const std::string& contact, const std::string& city,
+    const std::string& requiredBloodGroup, int unitsRequired,
+    const std::string& hospitalName, const std::string& requestStatus)
     : Person(name, age, contact, city)
 {
     this->requiredBloodGroup = requiredBloodGroup;
@@ -15,80 +15,70 @@ Patient::Patient(const QString& name, int age, const QString& contact, const QSt
 }
 
 //getters
-QString Patient::getRequiredBloodGroup() const {
-    return requiredBloodGroup;
-}
-
-int Patient::getUnitsRequired() const {
-    return unitsRequired;
-}
-
-QString Patient::getHospitalName() const {
-    return hospitalName;
-}
-
-QString Patient::getRequestStatus() const {
-    return requestStatus;
-}
+std::string Patient::getRequiredBloodGroup() const { return requiredBloodGroup; }
+int         Patient::getUnitsRequired()      const { return unitsRequired; }
+std::string Patient::getHospitalName()       const { return hospitalName; }
+std::string Patient::getRequestStatus()      const { return requestStatus; }
 
 //setters
-void Patient::setRequiredBloodGroup(const QString& bg) {
-    requiredBloodGroup = bg;
-}
+void Patient::setRequiredBloodGroup(const std::string& bg) { requiredBloodGroup = bg; }
+void Patient::setUnitsRequired(int units) { unitsRequired = units; }
+void Patient::setHospitalName(const std::string& hospital) { hospitalName = hospital; }
+void Patient::setRequestStatus(const std::string& status) { requestStatus = status; }
 
-void Patient::setUnitsRequired(int units) {
-    unitsRequired = units;
-}
-
-void Patient::setHospitalName(const QString& hospital) {
-    hospitalName = hospital;
-}
-
-void Patient::setRequestStatus(const QString& status) {
-    requestStatus = status;
-}
-
-//display() → FIXED (uses getters)
+//display() uses getters; converts to QString only at QDebug boundary
 void Patient::display() const {
-    qDebug() << "Name:" << getName();
+    qDebug() << "Name:" << QString::fromStdString(getName());
     qDebug() << "Age:" << getAge();
-    qDebug() << "Contact:" << getContact();
-    qDebug() << "City:" << getCity();
-
-    qDebug() << "Blood Group Needed:" << requiredBloodGroup;
+    qDebug() << "Contact:" << QString::fromStdString(getContact());
+    qDebug() << "City:" << QString::fromStdString(getCity());
+    qDebug() << "Blood Group Needed:" << QString::fromStdString(requiredBloodGroup);
     qDebug() << "Units Required:" << unitsRequired;
-    qDebug() << "Hospital:" << hospitalName;
-    qDebug() << "Status:" << requestStatus;
+    qDebug() << "Hospital:" << QString::fromStdString(hospitalName);
+    qDebug() << "Status:" << QString::fromStdString(requestStatus);
 }
 
-//toFileString() → FIXED (uses getters)
-QString Patient::toFileString() const {
+//toFileString() returns a comma-separated std::string
+// std::to_string replaces QString::number for int conversion
+std::string Patient::toFileString() const {
     return getName() + "," +
-        QString::number(getAge()) + "," +
+        std::to_string(getAge()) + "," +
         getContact() + "," +
         getCity() + "," +
         requiredBloodGroup + "," +
-        QString::number(unitsRequired) + "," +
+        std::to_string(unitsRequired) + "," +
         hospitalName + "," +
         requestStatus;
 }
 
-//fromFileString() → SAFE
-Patient Patient::fromFileString(const QString& line) {
-    QStringList parts = line.split(",");
+//fromFileString() - manual comma split replaces QStringList / line.split(',')
+Patient Patient::fromFileString(const std::string& line) {
+    std::string parts[10];
+    int count = 0;
+    std::string token;
+    for (char ch : line) {
+        if (ch == ',' && count < 9) {
+            parts[count++] = token;
+            token.clear();
+        }
+        else {
+            token += ch;
+        }
+    }
+    parts[count++] = token; //last field
 
-    if (parts.size() < 8) {
+    if (count < 8) {
         return Patient("", 0, "", "", "", 0, "", "");
     }
-	//trim whitespace from each part to ensure clean data when loading from the file
+
     return Patient(
-		parts[0],//name
-		parts[1].toInt(),//age
-		parts[2],//contact
-		parts[3], //city
-		parts[4],//required blood group
-		parts[5].toInt(),//units required
-		parts[6],//hospital name
-		parts[7]//request status
+        parts[0],               //name
+        std::stoi(parts[1]),    //age
+        parts[2],               //contact
+        parts[3],               //city
+        parts[4],               //required blood group
+        std::stoi(parts[5]),    //units required
+        parts[6],               //hospital name
+        parts[7]                //request status
     );
 }

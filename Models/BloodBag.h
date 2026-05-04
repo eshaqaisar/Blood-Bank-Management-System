@@ -1,30 +1,31 @@
 #ifndef BLOODBAG_H
 #define BLOODBAG_H
 
-#include <QString>//for string handling of blood group, donor name, etc.
+#include <string>//std::string replaces QString for blood group and donor name
 #include <QDate>//for handling collection date and calculating expiry based on it
-
+#include <QList>//QList<BloodBag> kept for BloodInventory internal storage (Qt container)
+#include <QMap>//QMap<std::string,int> for inventory map keyed by blood group string
 
 class BloodBag {
 private:
-    QString bloodGroup;    // "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"
-    int     units;         //how many units are in this bag (typically 1)
-    QDate   collectionDate; //date when this blood was collected from donor
-    QString donorName;     //who donated this bag
+    std::string bloodGroup;    // "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"
+    int         units;         //how many units are in this bag (typically 1)
+    QDate       collectionDate; //date when this blood was collected from donor
+    std::string donorName;     //who donated this bag
 
 public:
     static const int EXPIRY_DAYS = 42; //medical standard: blood expires after 42 days
 
     //constructor
-    BloodBag(const QString& bloodGroup, int units,
-        const QDate& collectionDate, const QString& donorName = "");
+    BloodBag(const std::string& bloodGroup, int units,
+        const QDate& collectionDate, const std::string& donorName = "");
 
     //getters
-    QString getBloodGroup()    const;
-    int     getUnits()         const;
-    QDate   getCollectionDate() const;
-    QString getDonorName()     const;
-    int     getDaysUntilExpiry() const; //returns negative if already expired
+    std::string getBloodGroup()     const;
+    int         getUnits()          const;
+    QDate       getCollectionDate() const;
+    std::string getDonorName()      const;
+    int         getDaysUntilExpiry() const; //returns negative if already expired
 
     //setters
     void setUnits(int u);
@@ -34,13 +35,10 @@ public:
 
     //file handling
     //format: bloodGroup,units,collectionDate,donorName
-    QString    toFileString()         const;
-    static BloodBag fromFileString(const QString& line);
+    std::string         toFileString()                        const;
+    static BloodBag     fromFileString(const std::string& line);
 };
 
-
-#include <QList>//for storing a list of BloodBag objects in the BloodInventory class
-#include <QMap>//for mapping blood groups to available unit counts in the inventory
 
 class BloodInventory {
 private:
@@ -51,11 +49,11 @@ private:
 
 public:
     //inventory management
-    void    addBag(const BloodBag& bag);              //add a new donated bag
-    bool    useBag(const QString& bloodGroup, int unitsNeeded); //remove on approval
-    void    removeExpiredBags();                       //clean up old blood
-    int     getAvailableUnits(const QString& bg) const; //count available units
-    bool    isLowStock(const QString& bloodGroup) const; //below threshold?
+    void    addBag(const BloodBag& bag);                              //add a new donated bag
+    bool    useBag(const std::string& bloodGroup, int unitsNeeded);   //remove on approval; returns false if insufficient stock
+    void    removeExpiredBags();                                       //clean up old blood
+    int     getAvailableUnits(const std::string& bg)   const;         //count available units
+    bool    isLowStock(const std::string& bloodGroup)  const;         //below threshold?
 
     //getters
     QList<BloodBag>         getAllBags()       const;
@@ -63,8 +61,8 @@ public:
     QList<BloodBag>         getExpiredBags()  const; //only expired bags
 
     //file handling
-    void save(const QString& filePath)         const;
-    void load(const QString& filePath);
+    void save(const std::string& filePath) const;
+    void load(const std::string& filePath);
 };
 
 #endif // BLOODBAG_H
