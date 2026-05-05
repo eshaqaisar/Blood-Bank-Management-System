@@ -9,7 +9,7 @@
 #include <QComboBox>//for filtering donors by blood group
 #include <QVBoxLayout>//for organizing the layout of the form in a vertical manner
 #include <QHBoxLayout>//for organizing the layout of the search bar and filter in a horizontal manner
-
+#include <string>//std::string replaces QString for filter parameters
 
 class DonorListForm : public QWidget {
     Q_OBJECT
@@ -19,25 +19,28 @@ public:
     ~DonorListForm();
 
 private slots:
-    void onSearchChanged(const QString& text); //filter table as user types
-    void onDeleteClicked();                    //delete selected row
-    void onAddDonorClicked();                  //open DonorRegistrationForm
-    void onViewProfileClicked();               //show popup with donor details + compatibility
-    void onFilterByBloodGroup(const QString& bg); //filter table by blood group
+    void onSearchChanged(const QString& text);    //filter table as user types
+    void onDeleteClicked();                        //delete selected row
+    void onAddDonorClicked();                      //open DonorRegistrationForm
+    void onViewProfileClicked();                   //show popup with donor details + compatibility
+    void onFilterByBloodGroup(const QString& bg);  //filter table by blood group
+    void onRefreshClicked();                       //refresh donor list from disk
 
 private:
     QTableWidget* tblDonors;
     QLineEdit* txtSearch;
-    QComboBox* cmbFilter;      //filter by blood group
+    QComboBox* cmbFilter;
     QPushButton* btnDelete;
     QPushButton* btnAdd;
     QPushButton* btnViewProfile;
-    QLabel* lblCount;       //shows "Showing X donors"
+    QPushButton* btnRefresh;   //refresh button added
+    QLabel* lblCount;
 
     void setupUI();
-    void loadDonors();           //read donors.txt and fill table
+    void loadDonors();
     void applyStyle();
-    void filterTable(const QString& text, const QString& bloodGroup);
+    //filterTable uses std::string params to avoid QString comparison issues
+    void filterTable(const std::string& text, const std::string& bloodGroup);
 };
 
 #endif // DONORLISTFORM_H

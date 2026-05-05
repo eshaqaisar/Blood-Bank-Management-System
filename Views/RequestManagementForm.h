@@ -7,9 +7,10 @@
 #include <QVBoxLayout>//for QVBoxLayout used in the main layout
 #include <QHBoxLayout>//for QHBoxLayout used for button arrangement
 #include <QLabel>//for QLabel used for the title
-#include <QStringList>//for QStringList used to track request IDs
-
-
+#include <QComboBox>//for blood group filter dropdown
+#include <string>//std::string replaces QString for request IDs
+// QStringList replaced with a fixed-size plain array of std::string
+#define MAX_REQUESTS 200
 
 class RequestManagementForm : public QWidget
 {
@@ -24,16 +25,22 @@ private slots:
     void onApproveClicked();
     void onRejectClicked();
     void onRefreshClicked();
+    //FIX: blood group filter crash — safe slot that calls loadRequests with current filter
+    void onFilterChanged();
 
 private:
     QTableWidget* requestsTable;
     QPushButton* approveBtn;
     QPushButton* rejectBtn;
     QPushButton* refreshBtn;
-	//we need to keep track of the request IDs in the same order as they appear in the table, since the table doesn't store the ID directly (only visible columns)
-    QStringList requestIds;
+    QComboBox* cmbFilter;   //blood group filter dropdown added for admin
 
-    void updateInventory(const QString& bloodGroup, int units);
+    //QStringList requestIds replaced with fixed-size plain array + count
+    std::string requestIds[MAX_REQUESTS];
+    int         requestCount; //how many IDs are currently tracked
+
+    //updateInventory removed: approve now calls FileManager::updateRequestStatus
+    //which handles inventory deduction atomically and returns false on failure
 };
 
 #endif // REQUESTMANAGEMENTFORM_H

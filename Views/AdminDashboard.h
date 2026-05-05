@@ -1,4 +1,4 @@
-#ifndef ADMINDASHBOARD_H // Include guard to prevent multiple definitions
+#ifndef ADMINDASHBOARD_H
 #define ADMINDASHBOARD_H
 
 #include <QWidget>//base class for all UI elements in Qt
@@ -7,19 +7,21 @@
 #include <QLabel>//for displaying text such as welcome message and alerts
 #include <QHBoxLayout>//for horizontal layout of the top bar and main content area
 #include <QVBoxLayout>//for vertical layout of the sidebar and overall dashboard
-#include <QTimer>//for periodic updates, such as refreshing inventory status
+#include <string>//std::string replaces QString for adminUsername member variable
 
 //forward declarations
 class DonorListForm;
 class InventoryDashboard;
 class RequestManagementForm;
-//admin dashboard class that provides an interface for managing donors, inventory, and requests in the blood bank system. It includes navigation buttons, a welcome message, and an alert for low stock situations. It also has a dark mode toggle and CSV export functionality for the donor list.
-class AdminDashboard : public QWidget 
+
+//admin dashboard class that provides an interface for managing donors, inventory, and requests in the blood bank system.
+class AdminDashboard : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit AdminDashboard(const QString& adminUsername, QWidget* parent = nullptr);
+    //constructor now takes std::string; converts to QString only at UI boundary
+    explicit AdminDashboard(const std::string& adminUsername, QWidget* parent = nullptr);
     ~AdminDashboard();
 
 private slots:
@@ -31,13 +33,13 @@ private slots:
     void onLogout();              //return to LandingPage
 
 private:
-    QString adminUsername;
-    bool    isDarkMode = false;   //tracks current theme
+    std::string adminUsername;    //std::string replaces QString
+    bool        isDarkMode = false;
 
-	//ui elements
-    QStackedWidget* stackedWidget; // The content area
+    //ui elements
+    QStackedWidget* stackedWidget;
 
-	//sidebar buttons for navigation and actions
+    //sidebar buttons for navigation and actions
     QPushButton* btnDonors;
     QPushButton* btnInventory;
     QPushButton* btnRequests;
@@ -45,15 +47,16 @@ private:
     QPushButton* btnExportCSV;
     QPushButton* btnLogout;
 
-	//labels for welcome message and low stock alert 
+    //labels for welcome message and low stock alert
     QLabel* lblWelcome;
-	QLabel* lblAlert;   //dynamic alert for low stock situations
+    QLabel* lblAlert;
 
-	//pages for different sections of the dashboard 
+    //pages for different sections of the dashboard
     DonorListForm* donorListPage;
     InventoryDashboard* inventoryPage;
     RequestManagementForm* requestsPage;
-	//helper functions to set up the UI and apply themes
+
+    //helper functions to set up the UI and apply themes
     void setupUI();
     void applyLightMode();
     void applyDarkMode();

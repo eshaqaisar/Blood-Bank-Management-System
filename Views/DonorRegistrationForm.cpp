@@ -4,7 +4,8 @@
 #include "../Models/BloodBag.h"//for creating new blood bag entries
 #include <QMessageBox>//for showing success/error messages
 #include <QScrollArea>//for making the form scrollable on smaller screens
-
+#include <QString>//used only at Qt UI boundary via fromStdString / toStdString
+#include <string>//for std::string used throughout
 
 DonorRegistrationForm::DonorRegistrationForm(QWidget* parent) : QWidget(parent)
 {
@@ -13,6 +14,7 @@ DonorRegistrationForm::DonorRegistrationForm(QWidget* parent) : QWidget(parent)
 }
 
 DonorRegistrationForm::~DonorRegistrationForm() {}
+
 //sets up the user interface components and layout for the donor registration form
 void DonorRegistrationForm::setupUI()
 {
@@ -20,7 +22,6 @@ void DonorRegistrationForm::setupUI()
     setMinimumWidth(420);
     resize(460, 540);
 
-   
     txtName = new QLineEdit(this); txtName->setPlaceholderText("Full Name");
     txtAge = new QLineEdit(this); txtAge->setPlaceholderText("Age (18+)");
     txtContact = new QLineEdit(this); txtContact->setPlaceholderText("Phone Number");
@@ -29,7 +30,10 @@ void DonorRegistrationForm::setupUI()
     txtUnits = new QLineEdit(this); txtUnits->setPlaceholderText("Units donating today (e.g. 1)");
 
     cmbBloodGroup = new QComboBox(this);
-    cmbBloodGroup->addItems({ "A+","A-","B+","B-","AB+","AB-","O+","O-" });
+    cmbBloodGroup->addItem("A+");  cmbBloodGroup->addItem("A-");
+    cmbBloodGroup->addItem("B+");  cmbBloodGroup->addItem("B-");
+    cmbBloodGroup->addItem("AB+"); cmbBloodGroup->addItem("AB-");
+    cmbBloodGroup->addItem("O+");  cmbBloodGroup->addItem("O-");
 
     lblStatus = new QLabel("", this);
     lblStatus->setAlignment(Qt::AlignCenter);
@@ -43,7 +47,6 @@ void DonorRegistrationForm::setupUI()
     connect(btnAdd, &QPushButton::clicked, this, &DonorRegistrationForm::onAddDonorClicked);
     connect(btnClear, &QPushButton::clicked, this, &DonorRegistrationForm::onClearClicked);
 
-    
     QWidget* formWidget = new QWidget();
     QVBoxLayout* formLayout = new QVBoxLayout(formWidget);
     formLayout->setContentsMargins(36, 28, 36, 28);
@@ -82,7 +85,6 @@ void DonorRegistrationForm::setupUI()
     formLayout->addLayout(btnRow);
     formLayout->addSpacing(10);
 
-   
     QScrollArea* scroll = new QScrollArea(this);
     scroll->setWidget(formWidget);
     scroll->setWidgetResizable(true);
@@ -95,17 +97,22 @@ void DonorRegistrationForm::setupUI()
     root->addWidget(scroll);
     setLayout(root);
 }
+
 //handles the logic when the "Add Donor" button is clicked, including validation, saving data, and updating inventory
 void DonorRegistrationForm::onAddDonorClicked()
 {
     lblStatus->setText("");
 
-    QString name = txtName->text().trimmed();
-    int     age = txtAge->text().toInt();
-    double  weight = txtWeight->text().toDouble();
-    int     units = txtUnits->text().toInt();
+    //read form values; convert to std::string at the boundary
+    std::string name = txtName->text().trimmed().toStdString();
+    std::string contact = txtContact->text().trimmed().toStdString();
+    std::string city = txtCity->text().trimmed().toStdString();
+    std::string bg = cmbBloodGroup->currentText().toStdString();
+    int    age = txtAge->text().toInt();
+    double weight = txtWeight->text().toDouble();
+    int    units = txtUnits->text().toInt();
 
-    if (name.isEmpty() || txtContact->text().trimmed().isEmpty()) {
+    if (name.empty() || contact.empty()) {
         lblStatus->setText("❌ Name and Contact are required.");
         lblStatus->setStyleSheet("color:#e74c3c;"); return;
     }
@@ -122,23 +129,18 @@ void DonorRegistrationForm::onAddDonorClicked()
         lblStatus->setStyleSheet("color:#e74c3c;"); return;
     }
 
-    Donor newDonor(
-        name, age,
-        txtContact->text().trimmed(),
-        txtCity->text().trimmed(),
-        cmbBloodGroup->currentText(),
-        weight,
-        QDate::currentDate()
-    );
+    //Donor constructor now takes std::string parameters
+    Donor newDonor(name, age, contact, city, bg, weight, QDate::currentDate());
     FileManager::saveDonor(newDonor);
 
+    //update inventory with the donated bag
     BloodInventory inventory;
     inventory.load(FileManager::INVENTORY_FILE);
-    BloodBag bag(cmbBloodGroup->currentText(), units, QDate::currentDate(), name);
+    BloodBag bag(bg, units, QDate::currentDate(), name);
     inventory.addBag(bag);
     inventory.save(FileManager::INVENTORY_FILE);
 
-    lblStatus->setText("✅ Donor " + name + " added — " +
+    lblStatus->setText("✅ Donor " + QString::fromStdString(name) + " added — " +
         QString::number(units) + " unit(s) added to inventory.");
     lblStatus->setStyleSheet("color:#27ae60;");
     clearFields();
@@ -155,7 +157,7 @@ void DonorRegistrationForm::clearFields()
 }
 
 void DonorRegistrationForm::onClearClicked() { clearFields(); }
-//applies a custom stylesheet to the form and its components to create a modern and visually appealing design
+
 void DonorRegistrationForm::applyStyle()
 {
     setStyleSheet(R"(
@@ -171,19 +173,16 @@ void DonorRegistrationForm::applyStyle()
         QScrollBar::handle:vertical:hover { background:#c0392b; }
         QScrollBar::add-line:vertical,
         QScrollBar::sub-line:vertical { height:0; }
-
         QLabel        { color:#2c3e50; background:transparent; }
         #fieldLabel   { font-size:13px; font-weight:600; color:#2c3e50; margin-top:4px; }
         #lblTitle     { font-size:18px; font-weight:bold; color:#c0392b; }
         #lblStatus    { font-size:12px; font-weight:bold; }
-
         QLineEdit {
             background-color:#ffffff; color:#2c3e50;
             padding:9px 12px; border:1px solid #bdc3c7;
             border-radius:7px; font-size:13px; min-height:36px;
         }
         QLineEdit:focus { border:2px solid #c0392b; background:#fff9f9; }
-
         QComboBox {
             background-color:#ffffff; color:#2c3e50;
             padding:8px 12px; border:1px solid #bdc3c7;
@@ -194,7 +193,6 @@ void DonorRegistrationForm::applyStyle()
             background:#ffffff; color:#2c3e50;
             selection-background-color:#fadbd8;
         }
-
         QPushButton {
             background-color:#c0392b; color:#ffffff;
             border-radius:8px; padding:11px;
@@ -202,7 +200,6 @@ void DonorRegistrationForm::applyStyle()
         }
         QPushButton:hover   { background-color:#e74c3c; }
         QPushButton:pressed { background-color:#a93226; }
-
         #btnSecondary {
             background-color:#ecf0f1; color:#2c3e50;
             border:1px solid #bdc3c7; border-radius:8px; font-weight:normal;

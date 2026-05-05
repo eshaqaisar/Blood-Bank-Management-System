@@ -5,13 +5,14 @@
 #include <QMessageBox>//to show an error if the working directory cannot be set
 #include "Views/LandingPage.h"//the main landing page after the splash screen
 #include "SplashPage.h"//the initial splash screen shown while loading resources
+#include "Utilities/FileManager.h"//for seeding demo data on first launch
 
 int main(int argc, char* argv[])//entry point of the application
 {
     QApplication app(argc, argv);
     app.setApplicationName("BloodBankSystem");
 
-	//set the working directory to the executable's location, ensuring relative paths work correctly
+    //set the working directory to the executable's location, ensuring relative paths work correctly
     QString exeDir = QCoreApplication::applicationDirPath();
     if (!QDir::setCurrent(exeDir)) {
         QMessageBox::critical(nullptr, "Startup Error",
@@ -21,7 +22,11 @@ int main(int argc, char* argv[])//entry point of the application
     QDir().mkpath("Database");
     QDir().mkpath("Resources");
 
-    
+    //seed demo data on first launch — safe to call every time because
+    //FileManager::seedDemoData() checks each file before writing and
+    //skips seeding if the file already has content, so no duplicates occur
+    FileManager::seedDemoData();
+
     //all forms inherit these base styles; individual forms only need to
     //override named widgets (titles, status labels, etc.) via setObjectName().
     QFile qss("Resources/style_light.qss");
@@ -30,7 +35,7 @@ int main(int argc, char* argv[])//entry point of the application
         qss.close();
     }
     else {
-        //inline fallback ,guarantees readable colors even if .qss is missing
+        //inline fallback, guarantees readable colors even if .qss is missing
         app.setStyleSheet(
             "QWidget    { background-color:#f5f5f5; color:#2c3e50;"
             "             font-family:Arial; font-size:13px; }"
@@ -49,10 +54,10 @@ int main(int argc, char* argv[])//entry point of the application
             "             padding:8px; font-weight:bold; border:none; }"
         );
     }
-	//show the splash screen while loading resources, then transition to the landing page
+
+    //show the splash screen while loading resources, then transition to the landing page
     SplashPage splash;
     splash.show();
 
-  
     return app.exec();
 }

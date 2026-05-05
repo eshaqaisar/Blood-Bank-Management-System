@@ -1,27 +1,42 @@
 #include "RequestManagementForm.h"//for the class definition
 #include "../Utilities/FileManager.h"//for FileManager to load/update requests and inventory
 #include "../Models/BloodRequest.h"//for BloodRequest model to represent each request
-#include "../Models/BloodBag.h"//for BloodBag model to represent inventory items
+#include "../Models/BloodBag.h"//for BloodInventory to pass into updateRequestStatus
 #include <QHeaderView>//for QHeaderView to adjust table column sizes
 #include <QMessageBox>//for QMessageBox to show dialogs
-#include <QDateTime>//for QDateTime to timestamp certificates
-#include <QFile>//for QFile to read/write files
-#include <QTextStream>//for QTextStream to write certificate content
 #include <QDir>//for QDir to create directories if needed
 #include <QColor>//for QColor to style table items
+#include <QString>//used only at Qt UI boundary via fromStdString / toStdString
+#include <string>//for std::string used throughout
 
 RequestManagementForm::RequestManagementForm(QWidget* parent)
-    : QWidget(parent)
+    : QWidget(parent), requestCount(0)
 {
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(15, 15, 15, 15);
     mainLayout->setSpacing(10);
-	//add a title label with an emoji for visual appeal
+
     QLabel* title = new QLabel("📋 Blood Request Management", this);
     title->setAlignment(Qt::AlignCenter);
     title->setStyleSheet("font-size: 16px; font-weight: bold; color: #2c3e50;");
 
-	//set up the table to display requests with appropriate columns and styling
+    //blood group filter dropdown — FIX for crash: was passing raw QComboBox text
+    //into a QString comparison that could be empty or mismatched.
+    //Now uses std::string and passes "" to filterRequestsByBloodGroup when "All" selected.
+    cmbFilter = new QComboBox(this);
+    cmbFilter->addItem("All Groups");
+    cmbFilter->addItem("A+");  cmbFilter->addItem("A-");
+    cmbFilter->addItem("B+");  cmbFilter->addItem("B-");
+    cmbFilter->addItem("AB+"); cmbFilter->addItem("AB-");
+    cmbFilter->addItem("O+");  cmbFilter->addItem("O-");
+    connect(cmbFilter, &QComboBox::currentTextChanged, this, &RequestManagementForm::onFilterChanged);
+
+    QHBoxLayout* filterRow = new QHBoxLayout();
+    filterRow->addWidget(new QLabel("Filter by Blood Group:", this));
+    filterRow->addWidget(cmbFilter);
+    filterRow->addStretch();
+
+    //set up the table to display requests with appropriate columns and styling
     requestsTable = new QTableWidget(this);
     requestsTable->setColumnCount(6);
     requestsTable->setHorizontalHeaderLabels(
@@ -30,26 +45,29 @@ RequestManagementForm::RequestManagementForm(QWidget* parent)
     requestsTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     requestsTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     requestsTable->setAlternatingRowColors(true);
-	//add buttons with emojis and consistent styling
+
+    //add buttons with emojis and consistent styling
     approveBtn = new QPushButton("✅ Approve", this);
     rejectBtn = new QPushButton("❌ Reject", this);
     refreshBtn = new QPushButton("🔄 Refresh", this);
-	//style buttons with colors and padding for better UX
+
     approveBtn->setStyleSheet("background:#27ae60; color:white; border-radius:5px; padding:8px; font-weight:bold;");
     rejectBtn->setStyleSheet("background:#e74c3c; color:white; border-radius:5px; padding:8px; font-weight:bold;");
     refreshBtn->setStyleSheet("background:#2980b9; color:white; border-radius:5px; padding:8px; font-weight:bold;");
-	//arrange buttons in a horizontal layout with spacing
+
     QHBoxLayout* btnLayout = new QHBoxLayout();
     btnLayout->addWidget(approveBtn);
     btnLayout->addWidget(rejectBtn);
     btnLayout->addStretch();
     btnLayout->addWidget(refreshBtn);
-	//assemble the main layout
+
+    //assemble the main layout
     mainLayout->addWidget(title);
+    mainLayout->addLayout(filterRow);
     mainLayout->addWidget(requestsTable);
     mainLayout->addLayout(btnLayout);
     setLayout(mainLayout);
-	//connect button signals to their respective slots
+
     connect(approveBtn, &QPushButton::clicked, this, &RequestManagementForm::onApproveClicked);
     connect(rejectBtn, &QPushButton::clicked, this, &RequestManagementForm::onRejectClicked);
     connect(refreshBtn, &QPushButton::clicked, this, &RequestManagementForm::onRefreshClicked);
@@ -58,38 +76,47 @@ RequestManagementForm::RequestManagementForm(QWidget* parent)
 }
 
 RequestManagementForm::~RequestManagementForm() {}
-//load requests from the file and populate the table, only showing pending requests for admin action
+
+//load requests from the file and populate the table.
+//FIX: now uses filterRequestsByBloodGroup() with safe std::string comparison
+//     instead of the raw QComboBox text that caused the crash.
 void RequestManagementForm::loadRequests()
 {
     requestsTable->setRowCount(0);
-    requestIds.clear();
+    requestCount = 0; //reset the plain array counter
 
-    
-    QList<BloodRequest> requests = FileManager::loadRequests();
+    //get filter value; if "All Groups" selected, pass "" to return everything
+    std::string filterBG = "";
+    if (cmbFilter->currentText() != "All Groups")
+        filterBG = cmbFilter->currentText().toStdString();
+
+    //FIX: use safe filter method instead of raw comparison that caused crash
+    QList<BloodRequest> requests = FileManager::filterRequestsByBloodGroup(filterBG);
 
     for (const BloodRequest& req : requests) {
-		//shows only pending requests in the table, approved/rejected ones are hidden since they can't be acted on anymore
+        //shows only pending requests in the table
         if (req.getStatus() != "Pending") continue;
 
         int row = requestsTable->rowCount();
         requestsTable->insertRow(row);
 
-        requestsTable->setItem(row, 0, new QTableWidgetItem(req.getRequestId()));
-        requestsTable->setItem(row, 1, new QTableWidgetItem(req.getPatientName()));
-        requestsTable->setItem(row, 2, new QTableWidgetItem(req.getHospitalName()));
-        requestsTable->setItem(row, 3, new QTableWidgetItem(req.getRequiredBloodGroup()));
+        //convert std::string to QString only at Qt UI boundary
+        requestsTable->setItem(row, 0, new QTableWidgetItem(QString::fromStdString(req.getRequestId())));
+        requestsTable->setItem(row, 1, new QTableWidgetItem(QString::fromStdString(req.getPatientName())));
+        requestsTable->setItem(row, 2, new QTableWidgetItem(QString::fromStdString(req.getHospitalName())));
+        requestsTable->setItem(row, 3, new QTableWidgetItem(QString::fromStdString(req.getRequiredBloodGroup())));
         requestsTable->setItem(row, 4, new QTableWidgetItem(QString::number(req.getUnitsRequired())));
 
-        QTableWidgetItem* statusItem = new QTableWidgetItem(req.getStatus());
-        statusItem->setForeground(QColor("#e67e22")); // Orange = Pending
+        QTableWidgetItem* statusItem = new QTableWidgetItem(QString::fromStdString(req.getStatus()));
+        statusItem->setForeground(QColor("#e67e22")); //Orange = Pending
         requestsTable->setItem(row, 5, statusItem);
 
-		//keep track of request IDs in the same order as they appear in the table for later reference when approving/rejecting
-        requestIds.append(req.getRequestId());
+        //track request IDs in the plain array (replaces QStringList)
+        if (requestCount < MAX_REQUESTS)
+            requestIds[requestCount++] = req.getRequestId();
     }
 
-    if (requestsTable->rowCount() == 0)
-    {
+    if (requestsTable->rowCount() == 0) {
         requestsTable->insertRow(0);
         QTableWidgetItem* ph = new QTableWidgetItem("No pending requests.");
         ph->setForeground(QColor("#aaa"));
@@ -97,86 +124,87 @@ void RequestManagementForm::loadRequests()
         requestsTable->setSpan(0, 0, 1, 6);
     }
 }
-//approve the selected request, update inventory, and generate a certificate
+
+//FIX: onApproveClicked now correctly refuses to approve when stock is insufficient.
+//Previously: updateRequestStatus was called unconditionally, then updateInventory()
+//            showed a warning AFTER the file was already written as "Approved".
+//Now:        FileManager::updateRequestStatus() checks inventory FIRST.
+//            It returns false if stock is insufficient, and we show an error without
+//            changing the request status at all — request stays Pending.
 void RequestManagementForm::onApproveClicked()
 {
     int row = requestsTable->currentRow();
-    if (row < 0 || row >= requestIds.size()) {
+    if (row < 0 || row >= requestCount) {
         QMessageBox::warning(this, "No Selection", "Please select a request first.");
         return;
     }
 
-    QString reqId = requestIds[row];
-    QString patient = requestsTable->item(row, 1)->text();
-    QString hospital = requestsTable->item(row, 2)->text();
-    QString bloodGroup = requestsTable->item(row, 3)->text();
-    int     units = requestsTable->item(row, 4)->text().toInt();
+    //get request ID from our plain array (replaces requestIds[row] on QStringList)
+    std::string reqId = requestIds[row];
 
-    //actually persist the status change to the file
-    FileManager::updateRequestStatus(reqId, "Approved");
+    //load inventory to pass into updateRequestStatus for atomic stock check
+    BloodInventory inventory;
+    inventory.load(FileManager::INVENTORY_FILE);
 
-    //decrement inventory (previously updateInventory() was empty)
-    updateInventory(bloodGroup, units);
+    //updateRequestStatus returns false if stock is insufficient — do NOT approve then
+    bool success = FileManager::updateRequestStatus(reqId, "Approved", inventory);
+    if (!success) {
+        //stock was insufficient: request stays Pending, file unchanged
+        QMessageBox::warning(this, "Insufficient Stock",
+            "Not enough blood units available for this request.\n"
+            "The request has NOT been approved. Please restock first.");
+        return;
+    }
 
-    //certificate saved to "Database/" not "../Database/"
+    //stock was sufficient: approved and inventory decremented — generate certificate
     QDir().mkpath("Database");
-    QString certPath = "Database/certificate_" + reqId + ".txt";
-    QFile cert(certPath);
-    if (cert.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QTextStream out(&cert);
-        out << "=== BLOOD BANK APPROVAL CERTIFICATE ===\n";
-        out << "Request ID:  " << reqId << "\n";
-        out << "Patient:     " << patient << "\n";
-        out << "Hospital:    " << hospital << "\n";
-        out << "Blood Group: " << bloodGroup << "\n";
-        out << "Units:       " << units << "\n";
-        out << "Date:        " << QDateTime::currentDateTime().toString() << "\n";
-        out << "Status:      APPROVED\n";
-        out << "========================================\n";
-        cert.close();
+    QString certPath = "Database/certificate_" + QString::fromStdString(reqId) + ".txt";
+    //retrieve full request details for the certificate
+    QList<BloodRequest> allReqs = FileManager::loadRequests();
+    for (const BloodRequest& r : allReqs) {
+        if (r.getRequestId() == reqId) {
+            FileManager::generateCertificate(r, certPath.toStdString());
+            break;
+        }
     }
 
     QMessageBox::information(this, "Approved",
-        "Request " + reqId + " approved.\nInventory updated.\nCertificate saved.");
-    loadRequests(); //refresh , approved row disappears from Pending list
+        "Request " + QString::fromStdString(reqId) + " approved.\n"
+        "Inventory updated.\nCertificate saved to Database/.");
+    loadRequests(); //refresh — approved row disappears from Pending list
 }
-//approve the selected request, update inventory, and generate a certificate
+
 void RequestManagementForm::onRejectClicked()
 {
     int row = requestsTable->currentRow();
-    if (row < 0 || row >= requestIds.size()) 
-    {
+    if (row < 0 || row >= requestCount) {
         QMessageBox::warning(this, "No Selection", "Please select a request first.");
         return;
     }
 
-    QString reqId = requestIds[row];
+    std::string reqId = requestIds[row];
 
-    //persist the rejection to the file
-    FileManager::updateRequestStatus(reqId, "Rejected");
+    //rejection does not touch inventory; pass a dummy inventory reference
+    BloodInventory inventory;
+    inventory.load(FileManager::INVENTORY_FILE);
+    FileManager::updateRequestStatus(reqId, "Rejected", inventory);
 
-    QMessageBox::information(this, "Rejected", "Request " + reqId + " has been rejected.");
+    QMessageBox::information(this, "Rejected",
+        "Request " + QString::fromStdString(reqId) + " has been rejected.");
     loadRequests(); //refresh
 }
 
+//refresh button: reload all requests from disk
 void RequestManagementForm::onRefreshClicked()
 {
     loadRequests();
 }
 
-
-void RequestManagementForm::updateInventory(const QString& bloodGroup, int units)
+//FIX: blood group filter crash — previously the raw QComboBox text was passed
+//into QString comparisons that could crash on empty or unexpected values.
+//Now delegates to loadRequests() which safely reads cmbFilter and calls
+//filterRequestsByBloodGroup() with a proper std::string.
+void RequestManagementForm::onFilterChanged()
 {
-    BloodInventory inventory;
-    inventory.load(FileManager::INVENTORY_FILE);
-
-    bool ok = inventory.useBag(bloodGroup, units);
-    if (ok) {
-        inventory.save(FileManager::INVENTORY_FILE);
-    }
-    else {
-        QMessageBox::warning(this, "Inventory Warning",
-            "Not enough " + bloodGroup + " stock to fulfil this request.\n"
-            "Request approved but inventory not decremented — please restock.");
-    }
+    loadRequests();
 }

@@ -1,9 +1,8 @@
-﻿#include "LandingPage.h"//header file for the LandingPage class, which defines the UI and behavior of the landing page of the application
-#include "LoginForm.h"//header file for the LoginForm class, which defines the UI and behavior of the login form that is opened when users click the login buttons on the landing page
-#include <QApplication>//for managing application-wide resources and settings, and for starting the event loop of the application
-#include <QFont>//for setting custom fonts for the labels and buttons on the landing page
-#include <QPainter>//for drawing the background image on the landing page
-
+﻿#include "LandingPage.h"//header file for the LandingPage class
+#include "LoginForm.h"//header file for the LoginForm class, which is opened when users click the login buttons
+#include <QApplication>//for managing application-wide resources
+#include <QFont>//for setting custom fonts for labels and buttons
+#include <QPainter>//for drawing the background image
 
 LandingPage::LandingPage(QWidget* parent) : QWidget(parent) {
     setupUI();
@@ -11,11 +10,12 @@ LandingPage::LandingPage(QWidget* parent) : QWidget(parent) {
 }
 
 LandingPage::~LandingPage() {}
-//ui setup function that initializes the user interface elements and layouts for the landing page, including the title, subtitle, and login buttons, and organizes them in a vertical layout with appropriate spacing and margins to create a visually appealing and welcoming interface for users when they first open the application
+
+//ui setup function that initializes the user interface elements and layouts for the landing page
 void LandingPage::setupUI() {
     setWindowTitle("Blood Bank System - Welcome");
     setMinimumSize(500, 400);
-    resize(520, 440);   //default open size
+    resize(520, 440);
 
     //title
     lblTitle = new QLabel("🩸 Centralized Blood Bank System", this);
@@ -42,17 +42,18 @@ void LandingPage::setupUI() {
 
     connect(btnAdminLogin, &QPushButton::clicked, this, &LandingPage::onAdminLoginClicked);
     connect(btnUserLogin, &QPushButton::clicked, this, &LandingPage::onUserLoginClicked);
-	//layout setup
+
+    //layout setup
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->setSpacing(20);
     layout->setContentsMargins(60, 60, 60, 60);
-    layout->addStretch(1);                  //absorbs extra space above
+    layout->addStretch(1);
     layout->addWidget(lblTitle);
     layout->addWidget(lblSubtitle);
     layout->addSpacing(30);
     layout->addWidget(btnAdminLogin);
     layout->addWidget(btnUserLogin);
-    layout->addStretch(1);                  //absorbs extra space below
+    layout->addStretch(1);
     setLayout(layout);
 }
 
@@ -64,7 +65,8 @@ void LandingPage::paintEvent(QPaintEvent* event)
     painter.drawPixmap(0, 0, width(), height(), bg);
     (void)event;
 }
-//style application function that applies custom styles to the landing page, such as colors and fonts, to create a visually appealing and welcoming interface for users when they first open the application, including specific styles for the title, subtitle, and login buttons to enhance the overall user experience and make the interface more engaging
+
+//style application function that applies custom styles to the landing page
 void LandingPage::applyStyle() {
     setStyleSheet(R"(
         QWidget {
@@ -106,14 +108,16 @@ void LandingPage::applyStyle() {
         #btnUser:pressed { background-color: #6B0000; }
     )");
 }
-//slot that is called when the "Login as Admin" button is clicked, it will open the login form in admin mode by creating a new instance of the LoginForm class with the mode set to "Admin", showing the login form, and hiding the landing page to allow the user to focus on the login process without distractions
+
+//slot: opens the login form in admin mode
 void LandingPage::onAdminLoginClicked()
 {
     LoginForm* loginForm = new LoginForm("Admin");
     loginForm->show();
     this->hide();
 }
-//slot that is called when the "Login as Donor / Patient" button is clicked, it will open the login form in user mode by creating a new instance of the LoginForm class with the mode set to "User", showing the login form, and hiding the landing page to allow the user to focus on the login process without distractions
+
+//slot: opens the login form in user mode (Donor / Patient)
 void LandingPage::onUserLoginClicked() {
     LoginForm* loginForm = new LoginForm("User");
     loginForm->show();

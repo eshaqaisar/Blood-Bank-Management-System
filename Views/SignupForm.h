@@ -8,7 +8,7 @@
 #include <QComboBox>//for the dropdown selection of blood groups and user roles (Donor or Patient)
 #include <QProgressBar>//for the live password strength indicator bar
 #include <QVBoxLayout>//for organizing the layout of the form in a vertical manner
-
+#include <string>//std::string replaces QString for all internal data passed to Model/FileManager constructors
 
 class SignupForm : public QWidget
 {
@@ -19,25 +19,25 @@ public:
     ~SignupForm();
 
 private slots:
-    void onRegisterClicked();
-    void onBackClicked();
-    void onPasswordChanged(const QString& text);
+    void onRegisterClicked();              //validates input, saves user/donor/patient, shows feedback
+    void onBackClicked();                  //navigates back to the login form
+    void onPasswordChanged(const QString& text); //updates strength bar live as user types
 
 private:
-	QLineEdit* txtName;//for name input, which can be used for personalization and record-keeping purposes (e.g., showing the user's name in the dashboard after login)
-	QLineEdit* txtAge;//for age input, which can be used for eligibility checks (e.g., donors must be 18 or older)
-	QLineEdit* txtContact;//for contact information input, which can be used for communication purposes (e.g., phone number or email)
-	QLineEdit* txtCity;//for city input, which can be used for demographic purposes or to show nearby donation centers for donors
-	QLineEdit* txtUsername;//for username input, which will be used for login and must be unique across all users
-	QLineEdit* txtPassword;//for password input, with echo mode set to Password to hide the input for security
-	QLineEdit* txtConfirmPassword;//for confirming the password input, it should match the txtPassword field for successful registration
-	QComboBox* cmbBloodGroup;//for selecting blood group, only relevant if registering as a donor, but can be optional for patients. The form can include logic to hide or disable this field when the user selects "Patient" as their role.
-    QComboBox* cmbRole;         //Donor or Patient
-	QProgressBar* barStrength;//live strength indicator for the password field
-	QLabel* lblStrengthHint;//label to show "Password Strength:" text next to the strength bar
-	QPushButton* btnRegister;//button to submit the registration form and create a new user account
-	QPushButton* btnBack;//button to go back to the login form
-	QLabel* lblStatus;//for showing validation messages or success messages after registration, centered and styled to stand out when showing feedback to the user
+    QLineEdit* txtName;             //for name input used in Donor/Patient object construction
+    QLineEdit* txtAge;              //for age input, used for eligibility checks (18+ for donors)
+    QLineEdit* txtContact;          //for contact information, passed to Donor/Patient constructor
+    QLineEdit* txtCity;             //for city input, passed to Donor/Patient constructor
+    QLineEdit* txtUsername;         //for username input — must be unique across all users
+    QLineEdit* txtPassword;         //for password input with echo mode set to Password
+    QLineEdit* txtConfirmPassword;  //for confirming password — must match txtPassword
+    QComboBox* cmbBloodGroup;       //for selecting blood group, passed to Donor/Patient constructor
+    QComboBox* cmbRole;             //Donor or Patient selection
+    QProgressBar* barStrength;         //live password strength indicator bar (0–4)
+    QLabel* lblStrengthHint;     //hint text next to the strength bar (e.g. "add uppercase")
+    QPushButton* btnRegister;         //submit the registration form and create a new user account
+    QPushButton* btnBack;             //navigate back to the login form without registering
+    QLabel* lblStatus;           //shows validation messages or success messages after registration
 
     void setupUI();
     void applyStyle();
