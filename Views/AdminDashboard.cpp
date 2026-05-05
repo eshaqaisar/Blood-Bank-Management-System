@@ -105,11 +105,12 @@ void AdminDashboard::setupUI()
     QStringList criticalGroups;
     for (const QString& g : { "O-", "AB-", "B-", "A-" })
     {
-		if (inv.isLowStock(g))//if any of the critical blood groups are low in stock, add them to the alert list
-            criticalGroups << g;
+        if (inv.isLowStock(g))
+            criticalGroups << g; // used a comma separated alert string
     }
-	if (!criticalGroups.isEmpty())//if there are critical blood groups, show an alert message in red and bold
+    if (!criticalGroups.isEmpty())
     {
+        // to show that blood as if blood is in low stock
         lblAlert->setText("⚠️ LOW STOCK: " + criticalGroups.join(", ") + " — Order immediately!");
         lblAlert->setStyleSheet("color: red; font-weight: bold;");
     }
