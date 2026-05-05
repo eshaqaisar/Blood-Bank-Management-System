@@ -49,7 +49,7 @@ bool Donor::isEligible() const {
     if (weight < 50.0) return false;
 
     // Rule 3: Must wait 56 days between donations to recover
-    //if lastDonationDate is invalid (null), this is their first donation — allowed.
+    //if lastDonationDate is invalid (null), this is their first donation â€” allowed.
     if (lastDonationDate.isValid()) {
         int daysSince = lastDonationDate.daysTo(QDate::currentDate());
         if (daysSince < 56) return false;  // Too soon since last donation

@@ -1,28 +1,28 @@
-#include "AdminDashboard.h"//header file for the AdminDashboard class
-#include "DonorListForm.h"//for the donor list management form
-#include "InventoryDashboard.h"//for the blood inventory management dashboard
-#include "RequestManagementForm.h"//for managing blood requests
-#include "LandingPage.h"//for the landing page to return to on logout
-#include "../Utilities/FileManager.h"//for handling file operations like CSV export and activity logging
-#include "../Models/BloodBag.h"//for blood bag data structures and operations
-#include <QApplication>//for qApp used in style sheet application
-#include <QFileDialog>//for file dialog used in CSV export
-#include <QFileInfo>//for checking file existence and properties
-#include <QMessageBox>//for showing message boxes to the user
-#include <QString>//used only at Qt UI boundary via QString::fromStdString
-#include <string>//for std::string used throughout
+#include "AdminDashboard.h"        // header file for the AdminDashboard class
+#include "DonorListForm.h"          // for the donor list management form
+#include "InventoryDashboard.h"     // for the blood inventory management dashboard
+#include "RequestManagementForm.h"  // for managing blood requests
+#include "LandingPage.h"            // for the landing page to return to on logout
+#include "../Utilities/FileManager.h"// for handling file operations like CSV export and activity logging
+#include "../Models/BloodBag.h"     // for blood bag data structures and operations
+#include <QApplication>             // for qApp used in style sheet application
+#include <QFileDialog>              // for file dialog used in CSV export
+#include <QFileInfo>                // for checking file existence and properties
+#include <QMessageBox>              // for showing message boxes to the user
+#include <QString>                  // used only at Qt UI boundary via QString::fromStdString
+#include <string>                   // for std::string used throughout
 
 // AdminDashboard.cpp
 // Part: Esha Qaisar
 
-//constructor: initializes the admin dashboard with the given username and sets up the UI
+// Constructor: initializes the admin dashboard with the given username and sets up the UI
 AdminDashboard::AdminDashboard(const std::string& adminUsername, QWidget* parent)
     : QWidget(parent), adminUsername(adminUsername)
 {
-    //seed demo data at first launch if database files are empty
+    // Seed demo data at first launch if database files are empty
     FileManager::seedDemoData();
     setupUI();
-    applyLightMode(); //start in light mode by default
+    applyLightMode(); // start in light mode by default
 }
 
 AdminDashboard::~AdminDashboard() {}
@@ -32,12 +32,12 @@ void AdminDashboard::setupUI()
     setWindowTitle("Admin Dashboard - Blood Bank System");
     setMinimumSize(950, 650);
 
-    //top bar: welcome message and low stock alert
-    //convert std::string to QString only at Qt UI label boundary
+    // Top bar: welcome message and low stock alert
+    // Convert std::string to QString only at Qt UI label boundary
     lblWelcome = new QLabel("Welcome, Admin: " + QString::fromStdString(adminUsername), this);
     lblWelcome->setObjectName("lblWelcome");
 
-    lblAlert = new QLabel("", this); //initially empty, will be set if low stock is detected
+    lblAlert = new QLabel("", this); // initially empty, will be set if low stock is detected
     lblAlert->setObjectName("lblAlert");
     lblAlert->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
@@ -46,13 +46,13 @@ void AdminDashboard::setupUI()
     topBar->addStretch();
     topBar->addWidget(lblAlert);
 
-    //left sidebar buttons for navigation and actions
-    btnDonors = new QPushButton("👥  Donor List", this);
-    btnInventory = new QPushButton("🩸  Blood Inventory", this);
-    btnRequests = new QPushButton("📋  Requests", this);
-    btnToggleDark = new QPushButton("🌙  Dark Mode", this);
-    btnExportCSV = new QPushButton("📊  Export CSV", this);
-    btnLogout = new QPushButton("🚪  Logout", this);
+    // Left sidebar buttons for navigation and actions
+    btnDonors = new QPushButton("Donor List", this);
+    btnInventory = new QPushButton("Blood Inventory", this);
+    btnRequests = new QPushButton("Requests", this);
+    btnToggleDark = new QPushButton("Dark Mode", this);
+    btnExportCSV = new QPushButton("Export CSV", this);
+    btnLogout = new QPushButton("Logout", this);
 
     connect(btnDonors, &QPushButton::clicked, this, &AdminDashboard::showDonorList);
     connect(btnInventory, &QPushButton::clicked, this, &AdminDashboard::showInventory);
@@ -64,7 +64,7 @@ void AdminDashboard::setupUI()
     QVBoxLayout* sidebar = new QVBoxLayout();
     sidebar->setSpacing(8);
     sidebar->setContentsMargins(10, 10, 10, 10);
-    sidebar->addWidget(new QLabel("📌 Navigation", this));
+    sidebar->addWidget(new QLabel("Navigation", this));
     sidebar->addWidget(btnDonors);
     sidebar->addWidget(btnInventory);
     sidebar->addWidget(btnRequests);
@@ -79,16 +79,16 @@ void AdminDashboard::setupUI()
     sidebarWidget->setFixedWidth(180);
     sidebarWidget->setObjectName("sidebar");
 
-    //create the main content pages
+    // Create the main content pages
     donorListPage = new DonorListForm(this);
     inventoryPage = new InventoryDashboard(this);
     requestsPage = new RequestManagementForm(this);
 
     stackedWidget = new QStackedWidget(this);
-    stackedWidget->addWidget(donorListPage);  //page 0
-    stackedWidget->addWidget(inventoryPage);  //page 1
-    stackedWidget->addWidget(requestsPage);   //page 2
-    stackedWidget->setCurrentIndex(0);        //show donor list first
+    stackedWidget->addWidget(donorListPage); // page 0
+    stackedWidget->addWidget(inventoryPage); // page 1
+    stackedWidget->addWidget(requestsPage);  // page 2
+    stackedWidget->setCurrentIndex(0);       // show donor list first
 
     QHBoxLayout* mainRow = new QHBoxLayout();
     mainRow->addWidget(sidebarWidget);
@@ -99,53 +99,52 @@ void AdminDashboard::setupUI()
     rootLayout->addLayout(mainRow);
     setLayout(rootLayout);
 
-    //check for low stock using std::string blood groups — FIX: was using QStringList
+    // FIX 1: Use std::string blood group names so they match isLowStock(const std::string&)
+    // FIX 2: Single unified implementation -- removed the duplicate QStringList block
     BloodInventory inv;
     inv.load(FileManager::INVENTORY_FILE);
-    QStringList criticalGroups;
-    for (const QString& g : { "O-", "AB-", "B-", "A-" })
-    {
-        if (inv.isLowStock(g))
-            criticalGroups << g; // used a comma separated alert string
-    }
-    if (!criticalGroups.isEmpty())
-    {
-        // to show that blood as if blood is in low stock
-        lblAlert->setText("⚠️ LOW STOCK: " + criticalGroups.join(", ") + " — Order immediately!");
-    const char* criticalGroups[] = { "O-", "AB-", "B-", "A-" };
+
+    const std::string criticalGroups[] = { "O-", "AB-", "B-", "A-" };
     std::string alertText = "";
-    for (int i = 0; i < 4; i++) {
-        if (inv.isLowStock(criticalGroups[i])) {
+    for (const std::string& g : criticalGroups)
+    {
+        if (inv.isLowStock(g))          // now correctly passes std::string
+        {
             if (!alertText.empty()) alertText += ", ";
-            alertText += criticalGroups[i];
+            alertText += g;
         }
     }
-    if (!alertText.empty()) {
-        lblAlert->setText("⚠️ LOW STOCK: " + QString::fromStdString(alertText) + " — Order immediately!");
+
+    if (!alertText.empty())
+    {
+        // FIX 3: replaced em-dash (illegal non-ASCII) with plain ASCII hyphen
+        lblAlert->setText("WARNING - LOW STOCK: " + QString::fromStdString(alertText) + " - Order immediately!");
         lblAlert->setStyleSheet("color: red; font-weight: bold;");
     }
-}
+} // FIX 4: this closing brace now properly ends setupUI()
+  //        Previously it was missing, causing every method below to be
+  //        treated as a local function definition inside setupUI()
 
-//switch to page 0: Donor List
+// Switch to page 0: Donor List
 void AdminDashboard::showDonorList() { stackedWidget->setCurrentIndex(0); }
 
-//switch to page 1: Inventory
+// Switch to page 1: Inventory
 void AdminDashboard::showInventory() { stackedWidget->setCurrentIndex(1); }
 
-//switch to page 2: Requests
+// Switch to page 2: Requests
 void AdminDashboard::showRequestManagement() { stackedWidget->setCurrentIndex(2); }
 
-//advanced feature: dark mode / light mode toggle
+// Advanced feature: dark mode / light mode toggle
 void AdminDashboard::toggleDarkMode()
 {
     isDarkMode = !isDarkMode;
     if (isDarkMode) {
         applyDarkMode();
-        btnToggleDark->setText("☀️  Light Mode");
+        btnToggleDark->setText("Light Mode");
     }
     else {
         applyLightMode();
-        btnToggleDark->setText("🌙  Dark Mode");
+        btnToggleDark->setText("Dark Mode");
     }
 }
 
@@ -178,15 +177,15 @@ void AdminDashboard::applyDarkMode()
     }
 }
 
-//advanced feature: one-click CSV export
+// Advanced feature: one-click CSV export
 void AdminDashboard::exportCSV()
 {
-    //let admin choose where to save the file
+    // Let admin choose where to save the file
     QString filePath = QFileDialog::getSaveFileName(
         this, "Export Donors to CSV", "donors_export.csv", "CSV Files (*.csv)");
-    if (filePath.isEmpty()) return; //user cancelled
+    if (filePath.isEmpty()) return; // user cancelled
 
-    //convert QString path to std::string at the FileManager boundary
+    // Convert QString path to std::string at the FileManager boundary
     if (FileManager::exportDonorsToCSV(filePath.toStdString())) {
         QMessageBox::information(this, "Success", "Donor list exported to:\n" + filePath);
     }
@@ -195,7 +194,7 @@ void AdminDashboard::exportCSV()
     }
 }
 
-//handle logout: log the activity, show the landing page, and close the dashboard
+// Handle logout: log the activity, show the landing page, and close the dashboard
 void AdminDashboard::onLogout()
 {
     FileManager::logActivity("Admin logged out: " + adminUsername);

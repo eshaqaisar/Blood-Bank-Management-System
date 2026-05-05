@@ -23,22 +23,22 @@ void DonorDashboard::setupUI() {
     setWindowTitle("Donor Dashboard");
     setMinimumSize(600, 500);
 
-    lblTitle = new QLabel("🩸 Donor Dashboard", this);
+    lblTitle = new QLabel("Donor Dashboard", this);
     lblTitle->setAlignment(Qt::AlignCenter);
     lblTitle->setObjectName("lblTitle");
 
-    lblName = new QLabel("Name: —", this);
-    lblBloodGroup = new QLabel("Blood Group: —", this);
-    lblEligibility = new QLabel("Eligible to Donate: —", this);
-    lblLastDonation = new QLabel("Last Donation: —", this);
+    lblName = new QLabel("Name: --", this);
+    lblBloodGroup = new QLabel("Blood Group: --", this);
+    lblEligibility = new QLabel("Eligible to Donate: --", this);
+    lblLastDonation = new QLabel("Last Donation: --", this);
 
     tblHistory = new QTableWidget(0, 2, this);
     tblHistory->setHorizontalHeaderLabels({ "Date", "Units Donated" });
     tblHistory->horizontalHeader()->setStretchLastSection(true);
     tblHistory->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
-    btnRefresh = new QPushButton("🔄 Refresh", this); //refresh button added
-    btnLogout = new QPushButton("🚪 Logout", this);
+    btnRefresh = new QPushButton("Refresh", this); //refresh button added
+    btnLogout = new QPushButton("Logout", this);
 
     connect(btnRefresh, &QPushButton::clicked, this, &DonorDashboard::onRefreshClicked);
     connect(btnLogout, &QPushButton::clicked, this, &DonorDashboard::onLogout);
@@ -56,7 +56,7 @@ void DonorDashboard::setupUI() {
     layout->addWidget(lblBloodGroup);
     layout->addWidget(lblEligibility);
     layout->addWidget(lblLastDonation);
-    layout->addWidget(new QLabel("📋 Donation History:", this));
+    layout->addWidget(new QLabel("Donation History:", this));
     layout->addWidget(tblHistory);
     layout->addLayout(btnRow);
     setLayout(layout);
@@ -79,7 +79,7 @@ void DonorDashboard::loadDonorProfile() {
             lblName->setText("Name: " + QString::fromStdString(d.getName()));
             lblBloodGroup->setText("Blood Group: " + QString::fromStdString(d.getBloodGroup()));
             lblEligibility->setText(
-                "Eligible to Donate: " + QString(d.isEligible() ? "✅ Yes" : "❌ No (cooldown active)"));
+                "Eligible to Donate: " + QString(d.isEligible() ? "[OK] Yes" : "[X] No (cooldown active)"));
             lblLastDonation->setText(
                 "Last Donation: " + (d.getLastDonationDate().isValid()
                     ? d.getLastDonationDate().toString("dd-MM-yyyy")

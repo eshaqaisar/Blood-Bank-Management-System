@@ -20,7 +20,7 @@ DonorListForm::~DonorListForm() {}
 
 void DonorListForm::setupUI() {
     txtSearch = new QLineEdit(this);
-    txtSearch->setPlaceholderText("🔍 Search by name...");
+    txtSearch->setPlaceholderText("Search by name...");
     connect(txtSearch, &QLineEdit::textChanged, this, &DonorListForm::onSearchChanged);
 
     cmbFilter = new QComboBox(this);
@@ -37,15 +37,18 @@ void DonorListForm::setupUI() {
     tblDonors->horizontalHeader()->setStretchLastSection(true);
     tblDonors->setSelectionBehavior(QAbstractItemView::SelectRows);
     tblDonors->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    tblDonors->setSortingEnabled(true);
+    // FIX 1: Do NOT enable sorting here at construction time.
+    // Sorting is enabled only after loadDonors() finishes populating the table,
+    // so that auto-sort cannot shift a half-built row and leave nullptr cells.
+    tblDonors->setSortingEnabled(false);
 
     lblCount = new QLabel("Donors: 0", this);
     lblCount->setObjectName("lblCount");
 
-    btnAdd = new QPushButton("➕ Add Donor", this);
-    btnViewProfile = new QPushButton("👁 View Profile", this);
-    btnDelete = new QPushButton("🗑 Delete", this);
-    btnRefresh = new QPushButton("🔄 Refresh", this); //refresh button added
+    btnAdd = new QPushButton("Add Donor", this);
+    btnViewProfile = new QPushButton("View Profile", this);
+    btnDelete = new QPushButton("Delete", this);
+    btnRefresh = new QPushButton("Refresh", this);
 
     connect(btnAdd, &QPushButton::clicked, this, &DonorListForm::onAddDonorClicked);
     connect(btnViewProfile, &QPushButton::clicked, this, &DonorListForm::onViewProfileClicked);
@@ -62,7 +65,7 @@ void DonorListForm::setupUI() {
     btnRow->addWidget(btnAdd);
     btnRow->addWidget(btnViewProfile);
     btnRow->addWidget(btnDelete);
-    btnRow->addWidget(btnRefresh); //refresh button in button row
+    btnRow->addWidget(btnRefresh);
     btnRow->addStretch();
 
     QVBoxLayout* layout = new QVBoxLayout(this);
@@ -76,19 +79,26 @@ void DonorListForm::setupUI() {
 
 void DonorListForm::loadDonors() {
     QList<Donor> donors = FileManager::loadDonors();
+
+    // FIX 1 (continued): Disable sorting before inserting any rows.
+    // With sorting enabled, calling setItem(row, 0, ...) triggers an immediate
+    // re-sort that shifts the new row to a different index. The subsequent
+    // setItem(row, 1..5, ...) calls then write into the wrong row, leaving many
+    // cells as nullptr. Disabling sorting during population prevents this entirely.
+    tblDonors->setSortingEnabled(false);
     tblDonors->setRowCount(0);
 
     for (const Donor& d : donors) {
         int row = tblDonors->rowCount();
         tblDonors->insertRow(row);
 
-        //convert std::string to QString only at Qt table item boundary
+        // Convert std::string to QString only at Qt table item boundary
         tblDonors->setItem(row, 0, new QTableWidgetItem(QString::fromStdString(d.getName())));
         tblDonors->setItem(row, 1, new QTableWidgetItem(QString::number(d.getAge())));
         tblDonors->setItem(row, 2, new QTableWidgetItem(QString::fromStdString(d.getCity())));
         tblDonors->setItem(row, 3, new QTableWidgetItem(QString::fromStdString(d.getBloodGroup())));
 
-        QTableWidgetItem* eligItem = new QTableWidgetItem(d.isEligible() ? "✅ Yes" : "❌ No");
+        QTableWidgetItem* eligItem = new QTableWidgetItem(d.isEligible() ? "[OK] Yes" : "[X] No");
         eligItem->setForeground(d.isEligible() ? QColor("#27ae60") : QColor("#e74c3c"));
         tblDonors->setItem(row, 4, eligItem);
 
@@ -96,34 +106,51 @@ void DonorListForm::loadDonors() {
             ? d.getLastDonationDate().toString("dd-MM-yyyy") : "First time";
         tblDonors->setItem(row, 5, new QTableWidgetItem(lastDate));
     }
+
+    // Re-enable sorting only after every row is fully built.
+    // This is safe now because all cells are guaranteed to be non-null.
+    tblDonors->setSortingEnabled(true);
+
     lblCount->setText("Donors: " + QString::number(donors.size()));
 }
 
-//slot: called when search text changes; converts QString to std::string at boundary
+// Slot: called when search text changes; converts QString to std::string at boundary
 void DonorListForm::onSearchChanged(const QString& text) {
     std::string bg = (cmbFilter->currentText() == "All Groups")
         ? "" : cmbFilter->currentText().toStdString();
     filterTable(text.toStdString(), bg);
 }
 
-//slot: called when blood group filter changes
+// Slot: called when blood group filter changes
 void DonorListForm::onFilterByBloodGroup(const QString& bg) {
     std::string bgStr = (bg == "All Groups") ? "" : bg.toStdString();
     filterTable(txtSearch->text().toStdString(), bgStr);
 }
 
-//refresh slot: reload donors from disk and repopulate table
+// Refresh slot: reload donors from disk and repopulate table
 void DonorListForm::onRefreshClicked() {
     loadDonors();
 }
 
-//filterTable uses std::string params — no Qt QString comparison needed here
+// filterTable uses std::string params -- no Qt QString comparison needed here
 void DonorListForm::filterTable(const std::string& text, const std::string& bloodGroup) {
     for (int row = 0; row < tblDonors->rowCount(); row++) {
-        std::string rowName = tblDonors->item(row, 0)->text().toLower().toStdString();
-        std::string rowBG = tblDonors->item(row, 3)->text().toStdString();
 
-        //case-insensitive name search using std::string::find
+        // FIX 2: Guard against nullptr before calling ->text().
+        // If Bug 1 had corrupted the table (or any future insertion issue occurs),
+        // dereferencing a nullptr QTableWidgetItem* causes an immediate segfault.
+        // This is exactly what caused the crash on every search/filter action.
+        QTableWidgetItem* nameItem = tblDonors->item(row, 0);
+        QTableWidgetItem* bgItem = tblDonors->item(row, 3);
+        if (!nameItem || !bgItem) {
+            tblDonors->setRowHidden(row, true);
+            continue;
+        }
+
+        std::string rowName = nameItem->text().toLower().toStdString();
+        std::string rowBG = bgItem->text().toStdString();
+
+        // Case-insensitive name search using std::string::find
         std::string lowerText = text;
         for (char& c : lowerText) if (c >= 'A' && c <= 'Z') c += 32;
 
@@ -140,12 +167,12 @@ void DonorListForm::onDeleteClicked() {
         QMessageBox::warning(this, "No Selection", "Please select a donor to delete.");
         return;
     }
-    //get name as std::string at the boundary
+    // Get name as std::string at the boundary
     std::string name = tblDonors->item(row, 0)->text().toStdString();
     auto reply = QMessageBox::question(this, "Confirm Delete",
         "Are you sure you want to delete donor: " + QString::fromStdString(name) + "?");
     if (reply == QMessageBox::Yes) {
-        FileManager::deleteDonor(name); //deleteDonor now takes std::string
+        FileManager::deleteDonor(name); // deleteDonor takes std::string
         loadDonors();
     }
 }
@@ -160,10 +187,10 @@ void DonorListForm::onViewProfileClicked() {
     QList<Donor> donors = FileManager::loadDonors();
     for (const Donor& d : donors) {
         if (d.getName() == name) {
-            //getCompatibleRecipients now returns CompatibleList (replaces QStringList)
+            // getCompatibleRecipients returns CompatibleList (replaces QStringList)
             CompatibleList recipients = CompatibilityChecker::getCompatibleRecipients(d.getBloodGroup());
 
-            //build the recipients string from the plain array without QStringList::join
+            // Build the recipients string from the plain array without QStringList::join
             std::string recipStr = "";
             for (int i = 0; i < recipients.count; i++) {
                 if (i > 0) recipStr += ", ";
@@ -177,10 +204,10 @@ void DonorListForm::onViewProfileClicked() {
                 "City:        " + QString::fromStdString(d.getCity()) + "\n"
                 "Blood Group: " + QString::fromStdString(d.getBloodGroup()) + "\n"
                 "Weight:      " + QString::number(d.getWeight()) + " kg\n"
-                "Eligible:    " + (d.isEligible() ? "Yes ✅" : "No ❌") + "\n\n"
+                "Eligible:    " + (d.isEligible() ? "Yes [OK]" : "No [X]") + "\n\n"
                 "Can donate to: " + QString::fromStdString(recipStr);
 
-            QMessageBox::information(this, "Donor Profile — " + QString::fromStdString(name), info);
+            QMessageBox::information(this, "Donor Profile -- " + QString::fromStdString(name), info);
             return;
         }
     }
@@ -189,7 +216,7 @@ void DonorListForm::onViewProfileClicked() {
 void DonorListForm::onAddDonorClicked() {
     DonorRegistrationForm* form = new DonorRegistrationForm();
     form->show();
-    //auto-refresh the table when the registration form closes
+    // Auto-refresh the table when the registration form closes
     connect(form, &QObject::destroyed, this, &DonorListForm::loadDonors);
 }
 
