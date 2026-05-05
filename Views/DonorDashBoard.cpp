@@ -1,14 +1,15 @@
 #include "DonorDashboard.h"//header file for the donor dashboard view
-#include "LandingPage.h" //header file for the landing page view
+#include "LandingPage.h"//header file for the landing page view
 #include "../Utilities/FileManager.h"//header file for file management utilities
 #include "../Models/Donor.h"//header file for the Donor model
 #include <QTableWidgetItem>//header file for table widget items
 #include <QHeaderView>//header file for table header view
-#include <QAbstractItemView>//header file for abstract item view (for setting edit triggers)
+#include <QAbstractItemView>//header file for abstract item view
 #include <QColor>//header file for color definitions
-#include <QFont>//header file for font definitions
+#include <QString>//used only at Qt UI boundary via fromStdString
+#include <string>//for std::string used throughout
 
-DonorDashboard::DonorDashboard(const QString& donorUsername, QWidget* parent)
+DonorDashboard::DonorDashboard(const std::string& donorUsername, QWidget* parent)
     : QWidget(parent), donorUsername(donorUsername)
 {
     setupUI();
@@ -16,6 +17,7 @@ DonorDashboard::DonorDashboard(const QString& donorUsername, QWidget* parent)
     applyStyle();
 }
 DonorDashboard::~DonorDashboard() {}
+
 //initializes the UI components and layout for the donor dashboard
 void DonorDashboard::setupUI() {
     setWindowTitle("Donor Dashboard");
@@ -35,8 +37,16 @@ void DonorDashboard::setupUI() {
     tblHistory->horizontalHeader()->setStretchLastSection(true);
     tblHistory->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
+    btnRefresh = new QPushButton("🔄 Refresh", this); //refresh button added
     btnLogout = new QPushButton("🚪 Logout", this);
+
+    connect(btnRefresh, &QPushButton::clicked, this, &DonorDashboard::onRefreshClicked);
     connect(btnLogout, &QPushButton::clicked, this, &DonorDashboard::onLogout);
+
+    QHBoxLayout* btnRow = new QHBoxLayout();
+    btnRow->addWidget(btnRefresh);
+    btnRow->addStretch();
+    btnRow->addWidget(btnLogout);
 
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->setContentsMargins(40, 30, 40, 30);
@@ -48,18 +58,26 @@ void DonorDashboard::setupUI() {
     layout->addWidget(lblLastDonation);
     layout->addWidget(new QLabel("📋 Donation History:", this));
     layout->addWidget(tblHistory);
-    layout->addWidget(btnLogout);
+    layout->addLayout(btnRow);
     setLayout(layout);
 }
 
 void DonorDashboard::loadDonorProfile() {
     QList<Donor> donors = FileManager::loadDonors();
     for (const Donor& d : donors) {
-        if (d.getName().toLower().contains(donorUsername.toLower()) ||
-            d.getContact() == donorUsername) {
+        //match by std::string comparison; convert donorUsername to lowercase for search
+        std::string dNameLower = d.getName();
+        std::string userLower = donorUsername;
+        for (char& c : dNameLower) if (c >= 'A' && c <= 'Z') c += 32;
+        for (char& c : userLower)  if (c >= 'A' && c <= 'Z') c += 32;
 
-            lblName->setText("Name: " + d.getName());
-            lblBloodGroup->setText("Blood Group: " + d.getBloodGroup());
+        bool nameMatch = (dNameLower.find(userLower) != std::string::npos);
+        bool contactMatch = (d.getContact() == donorUsername);
+
+        if (nameMatch || contactMatch) {
+            //convert std::string to QString only at Qt label boundary
+            lblName->setText("Name: " + QString::fromStdString(d.getName()));
+            lblBloodGroup->setText("Blood Group: " + QString::fromStdString(d.getBloodGroup()));
             lblEligibility->setText(
                 "Eligible to Donate: " + QString(d.isEligible() ? "✅ Yes" : "❌ No (cooldown active)"));
             lblLastDonation->setText(
@@ -67,16 +85,23 @@ void DonorDashboard::loadDonorProfile() {
                     ? d.getLastDonationDate().toString("dd-MM-yyyy")
                     : "No previous donation"));
 
-            QStringList history = d.getDonationHistory();
-            tblHistory->setRowCount(history.size());
-            for (int i = 0; i < history.size(); i++) {
-                tblHistory->setItem(i, 0, new QTableWidgetItem(history[i]));
+            //getDonationHistoryCount/Entry replaces getDonationHistory() which returned QStringList
+            int histCount = d.getDonationHistoryCount();
+            tblHistory->setRowCount(histCount);
+            for (int i = 0; i < histCount; i++) {
+                tblHistory->setItem(i, 0,
+                    new QTableWidgetItem(QString::fromStdString(d.getDonationHistoryEntry(i))));
                 tblHistory->setItem(i, 1, new QTableWidgetItem("1 unit"));
             }
             return;
         }
     }
     lblName->setText("Profile not found. Please contact Admin.");
+}
+
+//refresh slot: reload donor profile from disk
+void DonorDashboard::onRefreshClicked() {
+    loadDonorProfile();
 }
 
 void DonorDashboard::onLogout() {
@@ -87,7 +112,6 @@ void DonorDashboard::onLogout() {
 }
 
 void DonorDashboard::applyStyle() {
-	//apply a clean and modern style to the donor dashboard using Qt's stylesheet
     setStyleSheet(R"(
         QWidget {
             background-color: #ffffff;

@@ -5,11 +5,11 @@
 #include <QList>//QList kept for returning collections to the Qt UI layer
 #include <QMap>//QMap kept for inventory map used by Qt UI
 #include <QString>//included only for QMap key type and Qt boundary conversions
-#include "Donor.h"//for the Donor data structure and operations
-#include "Patient.h"//for the Patient data structure and operations
-#include "User.h"//for the User data structure and operations, including password strength calculation and user role management
-#include "BloodBag.h"//for the BloodBag data structure and operations, including managing blood inventory and updating stock levels
-#include "BloodRequest.h"//for the BloodRequest data structure and operations, including managing blood requests and updating their status
+#include "../Models/Donor.h"//for the Donor data structure and operations
+#include "../Models/Patient.h"//for the Patient data structure and operations
+#include "../Models/User.h"//for the User data structure and operations, including password strength calculation and user role management
+#include "../Models/BloodBag.h"//for the BloodBag data structure and operations, including managing blood inventory and updating stock levels
+#include "../Models/BloodRequest.h"//for the BloodRequest data structure and operations, including managing blood requests and updating their status
 
 class FileManager {
 public:
@@ -50,7 +50,7 @@ public:
     static bool updateRequestStatus(const std::string& requestId, const std::string& status,
         BloodInventory& inventory);
 
-    //filter requests by blood group — FIX for admin crash:
+    //filter requests by blood group â€” FIX for admin crash:
     //returns only requests matching the given blood group string.
     //passing "" returns all requests (no filter).
     static QList<BloodRequest> filterRequestsByBloodGroup(const std::string& bloodGroup);

@@ -7,9 +7,9 @@
 #include <QHeaderView>//for table header styling
 #include <QTableWidgetItem>//for table items
 #include <QAbstractItemView>//for disabling table editing
-#include <QFont>//for custom fonts
 #include <QColor>//for custom colors
-
+#include <QString>//used only at Qt UI boundary via fromStdString
+#include <string>//for std::string used throughout
 
 InventoryDashboard::InventoryDashboard(QWidget* parent) : QWidget(parent) {
     setupUI();
@@ -58,9 +58,12 @@ void InventoryDashboard::loadInventory() {
     inventory.load(FileManager::INVENTORY_FILE);
     QMap<QString, int> inventoryMap = inventory.getInventoryMap();
 
+    //count expired bags per blood group using std::string comparison
+    //QMap key is still QString (from getInventoryMap) but we use int counter with the same keys
     QMap<QString, int> expiredCount;
     for (const BloodBag& bag : inventory.getExpiredBags()) {
-        expiredCount[bag.getBloodGroup()]++;
+        //getBloodGroup() now returns std::string; convert to QString at Qt map boundary
+        expiredCount[QString::fromStdString(bag.getBloodGroup())]++;
     }
 
     tblInventory->setRowCount(0);
@@ -72,16 +75,16 @@ void InventoryDashboard::loadInventory() {
 
         QString bg = it.key();
         int     units = it.value();
-        bool    isLow = inventory.isLowStock(bg);
+        //isLowStock takes std::string; convert QString key at the boundary
+        bool    isLow = inventory.isLowStock(bg.toStdString());
         if (isLow) lowStockCount++;
 
         QTableWidgetItem* bgItem = new QTableWidgetItem(bg);
-        bgItem->setFont(QFont("Arial", 12, QFont::Bold));
-        bgItem->setForeground(QColor("#2c3e50")); 
+        bgItem->setForeground(QColor("#2c3e50"));
         tblInventory->setItem(row, 0, bgItem);
 
         QTableWidgetItem* unitItem = new QTableWidgetItem(QString::number(units) + " units");
-        unitItem->setForeground(QColor("#2c3e50")); 
+        unitItem->setForeground(QColor("#2c3e50"));
         tblInventory->setItem(row, 1, unitItem);
 
         QProgressBar* bar = new QProgressBar();
@@ -92,8 +95,8 @@ void InventoryDashboard::loadInventory() {
 
         QString color;
         if (units == 0) color = "#e74c3c";
-        else if (isLow)      color = "#f39c12";
-        else                 color = "#27ae60";
+        else if (isLow) color = "#f39c12";
+        else            color = "#27ae60";
         bar->setStyleSheet(
             "QProgressBar { border:1px solid #ccc; border-radius:4px;"
             "               background:#ecf0f1; color:#2c3e50; }"
@@ -136,12 +139,12 @@ void InventoryDashboard::onExportInventoryCSV() {
 
     BloodInventory inventory;
     inventory.load(FileManager::INVENTORY_FILE);
-    FileManager::exportInventoryToCSV(filePath, inventory.getInventoryMap());
+    //exportInventoryToCSV takes std::string path; convert at boundary
+    FileManager::exportInventoryToCSV(filePath.toStdString(), inventory.getInventoryMap());
     QMessageBox::information(this, "Exported", "Inventory exported to:\n" + filePath);
 }
 
 void InventoryDashboard::applyStyle() {
-    
     setStyleSheet(R"(
         QWidget {
             background-color: #fdfdfd;
@@ -165,19 +168,13 @@ void InventoryDashboard::applyStyle() {
         QTableWidget::item { color: #2c3e50; padding: 5px 8px; }
         QTableWidget::item:selected { background: #e8daef; color: #2c3e50; }
         QHeaderView::section {
-            background: #8e44ad;
-            color: #ffffff;
-            padding: 7px;
-            font-weight: bold;
-            border: none;
+            background: #8e44ad; color: #ffffff;
+            padding: 7px; font-weight: bold; border: none;
         }
         QPushButton {
-            background: #8e44ad;
-            color: #ffffff;
-            border-radius: 6px;
-            padding: 8px 14px;
-            font-weight: bold;
-            min-height: 34px;
+            background: #8e44ad; color: #ffffff;
+            border-radius: 6px; padding: 8px 14px;
+            font-weight: bold; min-height: 34px;
         }
         QPushButton:hover { background: #9b59b6; }
     )");
