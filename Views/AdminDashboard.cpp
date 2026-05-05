@@ -102,6 +102,16 @@ void AdminDashboard::setupUI()
     //check for low stock using std::string blood groups — FIX: was using QStringList
     BloodInventory inv;
     inv.load(FileManager::INVENTORY_FILE);
+    QStringList criticalGroups;
+    for (const QString& g : { "O-", "AB-", "B-", "A-" })
+    {
+        if (inv.isLowStock(g))
+            criticalGroups << g; // used a comma separated alert string
+    }
+    if (!criticalGroups.isEmpty())
+    {
+        // to show that blood as if blood is in low stock
+        lblAlert->setText("⚠️ LOW STOCK: " + criticalGroups.join(", ") + " — Order immediately!");
     const char* criticalGroups[] = { "O-", "AB-", "B-", "A-" };
     std::string alertText = "";
     for (int i = 0; i < 4; i++) {
