@@ -15,16 +15,40 @@ Patient::Patient(const std::string& name, int age, const std::string& contact, c
 }
 
 //getters
-std::string Patient::getRequiredBloodGroup() const { return requiredBloodGroup; }
-int         Patient::getUnitsRequired()      const { return unitsRequired; }
-std::string Patient::getHospitalName()       const { return hospitalName; }
-std::string Patient::getRequestStatus()      const { return requestStatus; }
+std::string Patient::getRequiredBloodGroup() const
+{
+    return requiredBloodGroup;
+}
+int Patient::getUnitsRequired() const 
+{
+    return unitsRequired;
+}
+std::string Patient::getHospitalName() const 
+{
+    return hospitalName;
+}
+std::string Patient::getRequestStatus() const
+{
+    return requestStatus;
+}
 
 //setters
-void Patient::setRequiredBloodGroup(const std::string& bg) { requiredBloodGroup = bg; }
-void Patient::setUnitsRequired(int units) { unitsRequired = units; }
-void Patient::setHospitalName(const std::string& hospital) { hospitalName = hospital; }
-void Patient::setRequestStatus(const std::string& status) { requestStatus = status; }
+void Patient::setRequiredBloodGroup(const std::string& bg) 
+{
+    requiredBloodGroup = bg;
+}
+void Patient::setUnitsRequired(int units)
+{
+    unitsRequired = units;
+}
+void Patient::setHospitalName(const std::string& hospital)
+{ 
+    hospitalName = hospital;
+}
+void Patient::setRequestStatus(const std::string& status)
+{
+    requestStatus = status;
+}
 
 //display() uses getters; converts to QString only at QDebug boundary
 void Patient::display() const {

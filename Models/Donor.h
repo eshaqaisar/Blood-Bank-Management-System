@@ -13,11 +13,11 @@ class Donor : public Person {  // "public Person" = Donor inherits from Person
 private:
     //donor-specific private attributes (not in person)
     std::string bloodGroup;         //e.g. "A+", "O-", "AB+"
-    double      weight;             //in kilograms (must be > 50 to donate)
-    QDate       lastDonationDate;   //to enforce 56-day gap between donations
+    double weight;             //in kilograms (must be > 50 to donate)
+    QDate lastDonationDate;   //to enforce 56-day gap between donations
     //donation history stored as plain array instead of QStringList
     std::string donationHistory[MAX_DONATION_HISTORY];
-    int         historyCount;       //tracks how many entries are filled
+    int historyCount;       //tracks how many entries are filled
 
 public:
     //constructor: takes all Person fields + Donor-specific fields
@@ -26,12 +26,12 @@ public:
         const QDate& lastDonationDate = QDate()); //default = null date = first-time donor
 
     //getters for Person fields are inherited from Person class (getName(), getAge(), getContact(), getCity())
-    std::string getBloodGroup()       const;
-    double      getWeight()           const;
-    QDate       getLastDonationDate() const;
+    std::string getBloodGroup() const;
+    double getWeight() const;
+    QDate getLastDonationDate() const;
     //returns history entry at index; returns "" if index out of range
     std::string getDonationHistoryEntry(int index) const;
-    int         getDonationHistoryCount()           const;
+    int getDonationHistoryCount() const;
 
     //setters for Donor-specific fields
     void setBloodGroup(const std::string& bg);

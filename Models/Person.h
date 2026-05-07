@@ -6,7 +6,7 @@
 class Person {
 private:
     std::string name;
-    int         age;
+    int age;
     std::string contact;
     std::string city;
 
@@ -15,10 +15,10 @@ public:
     virtual ~Person();
 
     //getters
-    std::string getName()    const;
-    int         getAge()     const;
+    std::string getName() const;
+    int getAge() const;
     std::string getContact() const;
-    std::string getCity()    const;
+    std::string getCity() const;
 
     //setters
     void setName(const std::string& name);

@@ -56,8 +56,10 @@ BloodRequest BloodRequest::fromFileString(const std::string& line) {
 
     if (count >= 6) {
         std::string s = parts[5];
-        if (s == "Approved") req.approve();
-        else if (s == "Rejected") req.reject();
+        if (s == "Approved")
+            req.approve();
+        else if (s == "Rejected")
+            req.reject();
     }
     if (count >= 7) {
         //QDate::fromString needs QString; convert std::string at the Qt boundary

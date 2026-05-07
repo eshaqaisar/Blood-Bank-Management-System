@@ -12,9 +12,9 @@ public:
     //constructor
     User(const std::string& username, const std::string& password, const std::string& role);
 
-    //getters (no setters to keep it immutable after creation)
+    //getters 
     std::string getUsername() const;
-    std::string getRole()     const;
+    std::string getRole() const;
     // NOTE: no getPassword() — passwords should NOT be accessible from outside!
 
     //authentication method that checks if the input password matches the stored password for this user. This method is used during the login process to verify that the user has entered the correct password without exposing the actual stored password to the caller. The method returns true if the input password matches the stored password, and false otherwise, allowing for secure authentication while keeping sensitive information protected.
@@ -23,8 +23,8 @@ public:
     bool authenticate(const std::string& inputPassword) const;
 
     //file I/O methods for saving/loading user data to/from a file. The toFileString method formats the user's information as a single line string suitable for writing to a file, while the fromFileString static method parses a line from the file and creates a User object based on that data. This allows for easy storage and retrieval of user information in a simple text file format, facilitating user management in the application.
-    std::string        toFileString()                         const;
-    static User        fromFileString(const std::string& line);
+    std::string toFileString() const;
+    static User fromFileString(const std::string& line);
 
     //static helper: generate a simple password strength score (0-4)
     // 0 = very weak, 4 = strong

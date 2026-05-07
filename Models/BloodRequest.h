@@ -10,9 +10,9 @@ private:
     std::string patientName;
     std::string hospitalName;
     std::string bloodGroup;
-    int         units;
+    int units;
     std::string status;
-    QDate       requestDate;
+    QDate requestDate;
 
 public:
     //default constructor for fromFileString()
@@ -25,27 +25,71 @@ public:
         const std::string& hospitalName, const std::string& bloodGroup, int units);
 
     //getters
-    std::string getRequestId()           const { return requestID; }
-    std::string getPatientName()         const { return patientName; }
-    std::string getHospitalName()        const { return hospitalName; }
-    std::string getBloodGroup()          const { return bloodGroup; }
-    int         getUnits()               const { return units; }
-    std::string getStatus()              const { return status; }
-    int         getUnitsRequired()       const { return units; }          //used in FileManager
-    std::string getRequiredBloodGroup()  const { return bloodGroup; }     //used by FileManager
-    QDate       getRequestDate()         const { return requestDate; }
+    std::string getRequestId() const 
+    {
+        return requestID;
+    }
+    std::string getPatientName() const 
+    {
+        return patientName;
+    }
+    std::string getHospitalName() const 
+    {
+        return hospitalName;
+    }
+    std::string getBloodGroup() const 
+    {
+        return bloodGroup;
+    }
+    int getUnits() const 
+    {
+        return units;
+    }
+    std::string getStatus() const 
+    {
+        return status;
+    }
+    int getUnitsRequired() const
+    {
+        return units;
+    }          //used in FileManager
+    std::string getRequiredBloodGroup()  const 
+    {
+        return bloodGroup;
+    }     //used by FileManager
+    QDate getRequestDate() const
+    {
+        return requestDate;
+    }
 
     //setter/accessor
-    void approve() { if (status == "Pending") status = "Approved"; }
-    void reject() { if (status == "Pending") status = "Rejected"; }
+    void approve() 
+    { 
+        if (status == "Pending") 
+            status = "Approved";
+    }
+    void reject() 
+    {
+        if (status == "Pending")
+            status = "Rejected";
+    }
 
     //functions added for backward compat
-    void approveRequest() { approve(); }
-    void rejectRequest() { reject(); }
-    void setRequestDate(const QDate& d) { requestDate = d; }
+    void approveRequest()
+    {
+        approve();
+    }
+    void rejectRequest()
+    {
+        reject();
+    }
+    void setRequestDate(const QDate& d) 
+    {
+        requestDate = d;
+    }
 
     //file input and output required by FileManager
-    std::string         toFileString()                       const;
+    std::string toFileString() const;
     static BloodRequest fromFileString(const std::string& line);
 
     //save old files

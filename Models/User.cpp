@@ -8,10 +8,16 @@ User::User(const std::string& username, const std::string& password, const std::
 }
 
 //getters
-std::string User::getUsername() const { return username; }
-std::string User::getRole()     const { return role; }
+std::string User::getUsername() const 
+{
+    return username;
+}
+std::string User::getRole() const
+{
+    return role;
+}
 
-//authentication: plain string comparison (no Qt needed here)
+//authentication: plain string comparison 
 bool User::authenticate(const std::string& inputPassword) const {
     return password == inputPassword;
 }
@@ -22,13 +28,15 @@ std::string User::toFileString() const {
 }
 
 //reconstruct from a line in users.txt (static)
-// manual comma split replaces QStringList / line.split(',')
+// manual comma split 
 User User::fromFileString(const std::string& line) {
     std::string parts[5];
     int count = 0;
     std::string token;
-    for (char ch : line) {
-        if (ch == ',' && count < 4) {
+    for (char ch : line) 
+    {
+        if (ch == ',' && count < 4)
+        {
             parts[count++] = token;
             token.clear();
         }
@@ -52,21 +60,36 @@ int User::passwordStrength(const std::string& pw) {
 
     bool hasUpper = false;
     for (char c : pw)
-        if (c >= 'A' && c <= 'Z') { hasUpper = true; break; }
-    if (hasUpper) ++score;
+        if (c >= 'A' && c <= 'Z') 
+        {
+            hasUpper = true; 
+            break;
+        }
+    if (hasUpper) 
+        ++score;
 
     bool hasDigit = false;
     for (char c : pw)
-        if (c >= '0' && c <= '9') { hasDigit = true; break; }
-    if (hasDigit) ++score;
+        if (c >= '0' && c <= '9')
+        {
+            hasDigit = true;
+            break;
+        }
+    if (hasDigit)
+        ++score;
 
     //check for special characters without using std::string::find on a set
     const std::string specials = "!@#$%^&*()_+-=[]{}";
     bool hasSpecial = false;
     for (char c : pw)
         for (char s : specials)
-            if (c == s) { hasSpecial = true; break; }
-    if (hasSpecial) ++score;
+            if (c == s)
+            {
+                hasSpecial = true;
+                break;
+            }
+    if (hasSpecial) 
+        ++score;
 
     return score;
 }

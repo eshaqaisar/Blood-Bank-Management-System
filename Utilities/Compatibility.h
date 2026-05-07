@@ -18,8 +18,8 @@ struct CompatibleList {
 
 class CompatibilityChecker {
 public:
-    static bool           canDonateTo(const std::string& donorBlood, const std::string& patientBlood);
-    static bool           isCompatible(const std::string& donorGroup, const std::string& recipientGroup);
+    static bool canDonateTo(const std::string& donorBlood, const std::string& patientBlood);
+    static bool isCompatible(const std::string& donorGroup, const std::string& recipientGroup);
     static CompatibleList getCompatibleDonors(const std::string& recipientGroup);
     static CompatibleList getCompatibleRecipients(const std::string& donorGroup);
 };

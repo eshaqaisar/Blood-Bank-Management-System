@@ -23,20 +23,20 @@ public:
     static const std::string LOGS_FILE;
 
     //user file operations: methods for saving, loading, and managing user data.
-    static void        saveUser(const User& user);
-    static void        saveAllUsers(const QList<User>& users);
+    static void saveUser(const User& user);
+    static void saveAllUsers(const QList<User>& users);
     static QList<User> loadUsers();
-    static bool        userExists(const std::string& username);
-    static User        findUser(const std::string& username);
+    static bool  userExists(const std::string& username);
+    static User  findUser(const std::string& username);
 
     //donor file operations: methods for saving, loading, and managing donor data.
-    static void         saveDonor(const Donor& donor);
-    static void         saveAllDonors(const QList<Donor>& donors);
+    static void saveDonor(const Donor& donor);
+    static void saveAllDonors(const QList<Donor>& donors);
     static QList<Donor> loadDonors();
-    static void         deleteDonor(const std::string& name);
+    static void deleteDonor(const std::string& name);
 
     //patient file operations: methods for saving, loading, and managing patient data.
-    static void           savePatient(const Patient& patient);
+    static void savePatient(const Patient& patient);
     static QList<Patient> loadPatients();
 
     //blood request operations
@@ -79,8 +79,8 @@ private:
     //utility methods for reading and writing lines of text from/to files.
     //std::string replaces QString for file paths
     static QList<std::string> readAllLines(const std::string& filePath);
-    static bool               writeAllLines(const std::string& filePath, const QList<std::string>& lines);
-    static bool               appendLine(const std::string& filePath, const std::string& line);
+    static bool writeAllLines(const std::string& filePath, const QList<std::string>& lines);
+    static bool appendLine(const std::string& filePath, const std::string& line);
 };
 
 #endif // FILEMANAGER_H

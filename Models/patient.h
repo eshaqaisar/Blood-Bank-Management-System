@@ -7,7 +7,7 @@
 class Patient : public Person {
 private:
     std::string requiredBloodGroup;
-    int         unitsRequired;
+    int unitsRequired;
     std::string hospitalName;
     std::string requestStatus;
 
@@ -18,7 +18,7 @@ public:
 
     //getters
     std::string getRequiredBloodGroup() const;
-    int         getUnitsRequired()      const;
+    int getUnitsRequired()      const;
     std::string getHospitalName()       const;
     std::string getRequestStatus()      const;
 
@@ -29,8 +29,8 @@ public:
     void setRequestStatus(const std::string& status);
 
     //overrides
-    void        display()       const override;
-    std::string toFileString()  const override;
+    void display() const override;
+    std::string toFileString() const override;
 
     static Patient fromFileString(const std::string& line);
 };

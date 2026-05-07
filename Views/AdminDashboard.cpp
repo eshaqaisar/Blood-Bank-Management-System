@@ -117,7 +117,7 @@ void AdminDashboard::setupUI()
 
     if (!alertText.empty())
     {
-        // FIX 3: replaced em-dash (illegal non-ASCII) with plain ASCII hyphen
+        
         lblAlert->setText("WARNING - LOW STOCK: " + QString::fromStdString(alertText) + " - Order immediately!");
         lblAlert->setStyleSheet("color: red; font-weight: bold;");
     }

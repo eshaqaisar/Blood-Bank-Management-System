@@ -16,10 +16,22 @@ Donor::Donor(const std::string& name, int age, const std::string& contact, const
 }
 
 //getters for the Donor-specific attributes
-std::string Donor::getBloodGroup()       const { return bloodGroup; }
-double      Donor::getWeight()           const { return weight; }
-QDate       Donor::getLastDonationDate() const { return lastDonationDate; }
-int         Donor::getDonationHistoryCount() const { return historyCount; }
+std::string Donor::getBloodGroup() const
+{
+    return bloodGroup;
+}
+double Donor::getWeight() const 
+{
+    return weight;
+}
+QDate Donor::getLastDonationDate() const
+{
+    return lastDonationDate;
+}
+int Donor::getDonationHistoryCount() const
+{
+    return historyCount;
+}
 
 //returns history entry at index; returns empty string if index is out of range
 std::string Donor::getDonationHistoryEntry(int index) const {
@@ -28,9 +40,18 @@ std::string Donor::getDonationHistoryEntry(int index) const {
 }
 
 //setters for Donor-specific attributes
-void Donor::setBloodGroup(const std::string& bg) { bloodGroup = bg; }
-void Donor::setWeight(double w) { weight = w; }
-void Donor::setLastDonationDate(const QDate& date) { lastDonationDate = date; }
+void Donor::setBloodGroup(const std::string& bg)
+{
+    bloodGroup = bg;
+}
+void Donor::setWeight(double w)
+{
+    weight = w;
+}
+void Donor::setLastDonationDate(const QDate& date)
+{
+    lastDonationDate = date;
+}
 
 //adds one entry to the history array; silently ignores if array is full
 void Donor::addToDonationHistory(const std::string& e) {
@@ -43,16 +64,19 @@ void Donor::addToDonationHistory(const std::string& e) {
 //business rule logic all three conditions must be true.
 bool Donor::isEligible() const {
     // Rule 1: Must be an adult (at least 18 years old)
-    if (getAge() < 18) return false;
+    if (getAge() < 18) 
+        return false;
 
     // Rule 2: Must be heavy enough to donate safely
-    if (weight < 50.0) return false;
+    if (weight < 50.0) 
+        return false;
 
     // Rule 3: Must wait 56 days between donations to recover
     //if lastDonationDate is invalid (null), this is their first donation — allowed.
     if (lastDonationDate.isValid()) {
         int daysSince = lastDonationDate.daysTo(QDate::currentDate());
-        if (daysSince < 56) return false;  // Too soon since last donation
+        if (daysSince < 56)
+            return false;  // Too soon since last donation
     }
 
     return true;  //all rules passed, donor is eligible

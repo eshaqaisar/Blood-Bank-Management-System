@@ -29,9 +29,9 @@ void InventoryDashboard::setupUI() {
     lblSummary->setObjectName("lblSummary");
     lblSummary->setAlignment(Qt::AlignCenter);
 
-    btnRefresh = new QPushButton("🔄 Refresh", this);
-    btnRemoveExpired = new QPushButton("🗑 Remove Expired", this);
-    btnExportCSV = new QPushButton("📊 Export CSV", this);
+    btnRefresh = new QPushButton("Refresh", this);
+    btnRemoveExpired = new QPushButton("Remove Expired", this);
+    btnExportCSV = new QPushButton("Export CSV", this);
 
     connect(btnRefresh, &QPushButton::clicked, this, &InventoryDashboard::onRefreshClicked);
     connect(btnRemoveExpired, &QPushButton::clicked, this, &InventoryDashboard::onRemoveExpiredClicked);
@@ -46,7 +46,7 @@ void InventoryDashboard::setupUI() {
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->setContentsMargins(15, 15, 15, 15);
     layout->setSpacing(12);
-    layout->addWidget(new QLabel("🩸 Blood Inventory Dashboard", this));
+    layout->addWidget(new QLabel("Blood Inventory Dashboard", this));
     layout->addWidget(lblSummary);
     layout->addWidget(tblInventory);
     layout->addLayout(btnRow);
@@ -61,9 +61,11 @@ void InventoryDashboard::loadInventory() {
     //count expired bags per blood group using std::string comparison
     //QMap key is still QString (from getInventoryMap) but we use int counter with the same keys
     QMap<QString, int> expiredCount;
-    for (const BloodBag& bag : inventory.getExpiredBags()) {
-        //getBloodGroup() now returns std::string; convert to QString at Qt map boundary
-        expiredCount[QString::fromStdString(bag.getBloodGroup())]++;
+    //getExpiredBags() returns BagArray (plain array wrapper) -- use index loop
+    BagArray expiredBags = inventory.getExpiredBags();
+    for (int ei = 0; ei < expiredBags.count; ei++) {
+        //getBloodGroup() returns std::string; convert to QString at Qt map boundary
+        expiredCount[QString::fromStdString(expiredBags[ei].getBloodGroup())]++;
     }
 
     tblInventory->setRowCount(0);
@@ -105,18 +107,18 @@ void InventoryDashboard::loadInventory() {
 
         int expired = expiredCount.value(bg, 0);
         QTableWidgetItem* expItem = new QTableWidgetItem(
-            expired > 0 ? QString::number(expired) + " ⚠️" : "None");
+            expired > 0 ? QString::number(expired) + " [!]" : "None");
         expItem->setForeground(expired > 0 ? QColor("#e74c3c") : QColor("#27ae60"));
         tblInventory->setItem(row, 3, expItem);
     }
 
     if (lowStockCount > 0) {
-        lblSummary->setText("⚠️  " + QString::number(lowStockCount) +
-            " blood group(s) are LOW STOCK — take action!");
+        lblSummary->setText("[!]  " + QString::number(lowStockCount) +
+            " blood group(s) are LOW STOCK -- take action!");
         lblSummary->setStyleSheet("color: #e74c3c; font-weight: bold;");
     }
     else {
-        lblSummary->setText("✅  All blood groups have sufficient stock.");
+        lblSummary->setText("[OK]  All blood groups have sufficient stock.");
         lblSummary->setStyleSheet("color: #27ae60; font-weight: bold;");
     }
 }

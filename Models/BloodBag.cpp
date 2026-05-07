@@ -5,6 +5,14 @@
 #include <string>//for std::string, std::to_string, std::stoi used throughout
 #include <QString>//used only at the Qt file I/O boundary via QString::fromStdString / .toStdString()
 
+//default constructor: initializes a BloodBag with safe default values.
+//Required so BloodBag objects can live inside plain arrays (BloodBag bags[MAX_BLOOD_BAGS]).
+BloodBag::BloodBag()
+    : bloodGroup(""), units(0), collectionDate(QDate()), donorName("")
+{
+}
+
+//main constructor
 BloodBag::BloodBag(const std::string& bloodGroup, int units,
     const QDate& collectionDate, const std::string& donorName)
     : bloodGroup(bloodGroup), units(units),
@@ -26,14 +34,15 @@ int BloodBag::getDaysUntilExpiry() const {
 
 void BloodBag::setUnits(int u) { units = u; }
 
-//expiry check: calculate the number of days since collection and compare to the expiry threshold
+//expiry check: calculate the number of days since collection and compare to the expiry threshold.
 //bag is expired if more than 42 days have passed since collection.
 bool BloodBag::isExpired() const {
     return collectionDate.daysTo(QDate::currentDate()) > EXPIRY_DAYS;
 }
 
-//serialize to a string format suitable for saving to inventory.txt, using a simple comma-separated format: "bloodGroup,units,collectionDate,donorName".
-// std::to_string replaces QString::number; QDate::toString converted to std::string at boundary
+//serialize to a string format suitable for saving to inventory.txt.
+//format: "bloodGroup,units,collectionDate,donorName"
+//std::to_string replaces QString::number; QDate::toString converted to std::string at boundary
 std::string BloodBag::toFileString() const {
     return bloodGroup + "," +
         std::to_string(units) + "," +
@@ -41,8 +50,8 @@ std::string BloodBag::toFileString() const {
         donorName;
 }
 
-//deserialize from inventory.txt
-// manual comma split replaces QStringList / line.split(',')
+//deserialize from inventory.txt.
+//manual comma split replaces QStringList / line.split(',')
 BloodBag BloodBag::fromFileString(const std::string& line) {
     std::string parts[6];
     int count = 0;
@@ -56,69 +65,81 @@ BloodBag BloodBag::fromFileString(const std::string& line) {
             token += ch;
         }
     }
-    parts[count++] = token; //last field
+    parts[count++] = token; //last field after final comma
 
     if (count < 4)
         return BloodBag("A+", 0, QDate::currentDate(), "Unknown");
 
     return BloodBag(
-        parts[0],                                                          //bloodGroup
-        std::stoi(parts[1]),                                               //units
-        QDate::fromString(QString::fromStdString(parts[2]), "yyyy-MM-dd"), //collectionDate
-        parts[3]                                                           //donorName
+        parts[0],                                                           //bloodGroup
+        std::stoi(parts[1]),                                                //units
+        QDate::fromString(QString::fromStdString(parts[2]), "yyyy-MM-dd"),  //collectionDate
+        parts[3]                                                            //donorName
     );
 }
 
-//add a new blood bag to the inventory (called after successful donation)
+// -----------------------------------------------------------------------
+// BloodInventory methods
+// -----------------------------------------------------------------------
+
+//add a new blood bag to the inventory (called after successful donation).
+//silently ignores the add if the array is already full.
 void BloodInventory::addBag(const BloodBag& bag) {
-    bags.append(bag);
+    if (bagCount < MAX_BLOOD_BAGS)
+        bags[bagCount++] = bag;
 }
 
 //use blood from inventory when a request is approved.
-//finds bags of matching blood group and deducts units.
-//returns false if not enough stock is available — caller must NOT approve if false is returned.
+//finds bags of matching blood group and deducts units one by one.
+//returns false if not enough stock is available -- caller must NOT approve if false is returned.
 bool BloodInventory::useBag(const std::string& bloodGroup, int unitsNeeded) {
     int available = getAvailableUnits(bloodGroup);
-    if (available < unitsNeeded) return false; //not enough stock — request must be rejected
+    if (available < unitsNeeded) return false; //not enough stock -- request must be rejected
 
-    //deduct from bags one by one until we have enough
+    //deduct from bags one by one until we have fulfilled the request
     int remaining = unitsNeeded;
-    for (BloodBag& bag : bags) {
-        if (bag.getBloodGroup() == bloodGroup && !bag.isExpired() && remaining > 0) {
-            int take = qMin(bag.getUnits(), remaining);
-            bag.setUnits(bag.getUnits() - take);
+    for (int i = 0; i < bagCount && remaining > 0; i++) {
+        if (bags[i].getBloodGroup() == bloodGroup && !bags[i].isExpired()) {
+            int take = bags[i].getUnits();
+            if (take > remaining) take = remaining;
+            bags[i].setUnits(bags[i].getUnits() - take);
             remaining -= take;
         }
     }
 
-    //remove bags that are now empty (units == 0)
-    QList<BloodBag> nonEmpty;
-    for (const BloodBag& b : bags) {
-        if (b.getUnits() > 0) nonEmpty.append(b);
+    //compact the array: remove bags whose units have dropped to 0.
+    //plain shift-left loop replaces QList filter pattern.
+    int newCount = 0;
+    for (int i = 0; i < bagCount; i++) {
+        if (bags[i].getUnits() > 0) {
+            bags[newCount++] = bags[i];
+        }
     }
-    bags = nonEmpty;
+    bagCount = newCount;
     return true;
 }
 
-//scan all bags and remove those past their 42-day limit
+//scan all bags and remove those past their 42-day limit.
+//uses the same compact/shift-left pattern to avoid any list type.
 void BloodInventory::removeExpiredBags() {
-    int before = bags.size();
-    QList<BloodBag> fresh;
-    for (const BloodBag& b : bags) {
-        if (!b.isExpired())
-            fresh.append(b);
+    int before = bagCount;
+    int newCount = 0;
+    for (int i = 0; i < bagCount; i++) {
+        if (!bags[i].isExpired()) {
+            bags[newCount++] = bags[i];
+        }
     }
-    bags = fresh;
-    int removed = before - bags.size();
+    bagCount = newCount;
+    int removed = before - bagCount;
     qDebug() << "Removed" << removed << "expired blood bags.";
 }
 
 //count total available (non-expired) units of a given blood group
 int BloodInventory::getAvailableUnits(const std::string& bg) const {
     int total = 0;
-    for (const BloodBag& bag : bags) {
-        if (bag.getBloodGroup() == bg && !bag.isExpired()) {
-            total += bag.getUnits();
+    for (int i = 0; i < bagCount; i++) {
+        if (bags[i].getBloodGroup() == bg && !bags[i].isExpired()) {
+            total += bags[i].getUnits();
         }
     }
     return total;
@@ -129,13 +150,29 @@ bool BloodInventory::isLowStock(const std::string& bloodGroup) const {
     return getAvailableUnits(bloodGroup) < LOW_STOCK_THRESHOLD;
 }
 
-QList<BloodBag> BloodInventory::getAllBags() const { return bags; }
+//returns all bags (including expired) as a BagArray.
+//BagArray replaces QList<BloodBag> as the return type.
+BagArray BloodInventory::getAllBags() const {
+    BagArray result;
+    for (int i = 0; i < bagCount; i++)
+        result.append(bags[i]);
+    return result;
+}
 
-//returns a QMap of blood group → total available units
-//QMap key is kept as QString because the UI/Qt code typically uses it that way
+//returns only expired bags as a BagArray (for admin report and donor history).
+//BagArray replaces QList<BloodBag> as the return type.
+BagArray BloodInventory::getExpiredBags() const {
+    BagArray result;
+    for (int i = 0; i < bagCount; i++) {
+        if (bags[i].isExpired()) result.append(bags[i]);
+    }
+    return result;
+}
+
+//returns a QMap of blood group -> total available units.
+//QMap key is kept as QString because the Qt UI (InventoryDashboard) needs it.
 QMap<QString, int> BloodInventory::getInventoryMap() const {
     QMap<QString, int> map;
-    //iterate through all standard blood groups and populate the map
     const char* groups[] = { "A+","A-","B+","B-","AB+","AB-","O+","O-" };
     for (int i = 0; i < 8; i++) {
         //convert std::string blood group to QString only at this Qt boundary
@@ -144,45 +181,40 @@ QMap<QString, int> BloodInventory::getInventoryMap() const {
     return map;
 }
 
-//returns only expired bags (for admin report)
-QList<BloodBag> BloodInventory::getExpiredBags() const {
-    QList<BloodBag> expired;
-    for (const BloodBag& bag : bags) {
-        if (bag.isExpired()) expired.append(bag);
-    }
-    return expired;
-}
-
-//save inventory to inventory.txt; filePath as std::string, converted to QString at QFile boundary
+//save inventory to inventory.txt.
+//filePath is std::string; converted to QString only at the QFile API boundary.
 void BloodInventory::save(const std::string& filePath) const {
     QFile file(QString::fromStdString(filePath));
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        qDebug() << "ERROR: Cannot open inventory file for writing:" << QString::fromStdString(filePath);
+        qDebug() << "ERROR: Cannot open inventory file for writing:"
+            << QString::fromStdString(filePath);
         return;
     }
     QTextStream out(&file);
-    for (const BloodBag& bag : bags) {
-        out << QString::fromStdString(bag.toFileString()) << "\n";
+    for (int i = 0; i < bagCount; i++) {
+        out << QString::fromStdString(bags[i].toFileString()) << "\n";
     }
     file.close();
 }
 
-//load inventory from inventory.txt; filePath as std::string, converted to QString at QFile boundary
+//load inventory from inventory.txt.
+//filePath is std::string; converted to QString only at the QFile API boundary.
 void BloodInventory::load(const std::string& filePath) {
-    bags.clear(); //clear existing data before loading
+    bagCount = 0; //reset array counter (replaces bags.clear())
     QFile file(QString::fromStdString(filePath));
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        qDebug() << "INFO: Inventory file not found. Starting empty:" << QString::fromStdString(filePath);
+        qDebug() << "INFO: Inventory file not found. Starting empty:"
+            << QString::fromStdString(filePath);
         return;
     }
     QTextStream in(&file);
     while (!in.atEnd()) {
         QString qline = in.readLine().trimmed();
-        if (!qline.isEmpty()) {
+        if (!qline.isEmpty() && bagCount < MAX_BLOOD_BAGS) {
             //convert to std::string at the boundary before passing to fromFileString
-            bags.append(BloodBag::fromFileString(qline.toStdString()));
+            bags[bagCount++] = BloodBag::fromFileString(qline.toStdString());
         }
     }
     file.close();
-    qDebug() << "Loaded" << bags.size() << "blood bags from inventory.";
+    qDebug() << "Loaded" << bagCount << "blood bags from inventory.";
 }
